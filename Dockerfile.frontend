@@ -1,0 +1,58 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# VersionIQ — Frontend Dockerfile (multi-stage)
+#
+# Stage 1 (dependencies): install npm packages
+# Stage 2 (builder):      run vite build
+# Stage 3 (runtime):      serve the built SPA with vite preview
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Stage 1: install dependencies ────────────────────────────────────────────
+FROM node:20-alpine AS dependencies
+LABEL stage=dependencies
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --no-optional --no-audit --no-fund
+
+# ── Stage 2: build ───────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+LABEL stage=builder
+WORKDIR /app
+
+# Accept the API URL at build time so Vite can embed it.
+ARG VITE_API_BASE_URL=http://localhost:4000
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+# ── Stage 3: runtime ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+LABEL maintainer="version-vault"
+LABEL version="1.0.0"
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init curl
+
+# Non-root user for security
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+# Copy built assets and the minimal runtime files
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
+
+USER nextjs
+
+EXPOSE 3000
+
+# Health check — confirms the Vite preview server is responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]

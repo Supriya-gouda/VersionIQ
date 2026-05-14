@@ -1,0 +1,361 @@
+Hosting a website in public subnet and the database in private subnet
+1) Create a VPC
+Go to VPC → Create VPC
+Select VPC only
+Name: MyVPC
+CIDR: 10.0.0.0/16
+Click Create
+
+Create Subnets
+Public Subnet
+Name: PublicSubnet
+CIDR: 10.0.1.0/24
+Private Subnet
+Name: PrivateSubnet
+CIDR: 10.0.2.0/24
+
+Internet Gateway (for website)
+Create Internet Gateway
+Attach to VPC
+
+Elastic IP:
+allocate elastic ip and click on allocate
+
+NAT Gateway:
+Name: MyNAT
+Availability: Zonal
+Subnet: PublicSubnet
+Connectivity: Public
+Elastic IP: select allocated IP
+Create
+
+Route Tables
+Public Route Table
+Create PublicRT
+Add route:
+0.0.0.0/0 → Internet Gateway
+Associate with PublicSubnet
+
+Private Route Table
+Create PrivateRT
+Add route:
+0.0.0.0/0->NAT Gateway
+Associate with PrivateSubnet
+
+2)Create and launch ec2 instance
+Name: WebServer
+Keep other options same and change Network settings:
+VPC: MyVPC
+Subnet: Public subnet
+Auto-assign public IP: ✅ Enable
+Download the key pair
+Create a Security Group
+Name:EC2-SG
+SSH (22) → 0.0.0.0/0
+HTTP (80) → 0.0.0.0/0
+Launch Instance
+
+
+3) Connect to the ec2 instance and execute
+sudo yum update -y
+sudo yum install httpd -y
+sudo systemctl start httpd
+sudo systemctl enable httpd
+
+4) Go to amazon ec2 and create another instance
+Name: DBServer
+Keep other options same and change Network settings:
+VPC: MyVPC
+Subnet: Private subnet
+Auto-assign public IP: Disable
+Use existing key pair
+Create a Security Group
+Name:DB-SG
+SSH (22) → Custom(EC2-SG)
+MYSQL → Custom(EC2-SG)
+Launch Instance
+
+5)After connecting to ec2 instance of webserver, execute
+nano MyKeyPair.pem
+Open the pem file you have downloaded in notepad, copy the content and paste it in the file. 
+To save press Ctrl+X, then press y and then press enter
+Then execute,
+chmod 400 MyKeyPair.pem
+ssh -i MyKeyPair.pem ec2-user@private-ip-dbserver
+Then execute,
+sudo yum update -y
+sudo yum install mariadb105-server -y
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
+
+6)Configure sql
+sudo mysql
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'root123';
+CREATE USER 'root'@'%' IDENTIFIED BY 'root123';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+EXIT;
+
+root123 is the password for the database
+
+
+7)sudo nano /etc/my.cnf.d/mariadb-server.cnf
+Add:
+[mysqld]
+bind-address=0.0.0.0
+and save
+sudo systemctl restart mariadb
+
+8)In the webserver
+sudo yum install mariadb105 -y
+mysql -h private-ip-dbserver -u root -p
+enter the password as root123
+now you will be able to use the database in public ec2 instance
+
+CREATE DATABASE college;
+USE college;
+
+CREATE TABLE feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50),
+    course VARCHAR(50),
+    message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+cd /var/www/html
+sudo mkdir college
+cd college
+
+
+sudo nano index.php
+<!DOCTYPE html>
+<html>
+<head>
+<title>XYZ College</title>
+
+<style>
+body { margin:0; font-family: Arial; background:#f4f6f7; }
+
+header { background:#2c3e50; color:white; padding:20px; text-align:center; }
+
+nav { background:#34495e; padding:10px; text-align:center; }
+
+nav a {
+    color:white;
+    margin:15px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+nav a:hover { color:yellow; }
+
+section { padding:30px; text-align:center; }
+
+.card {
+    background:#ecf0f1;
+    padding:20px;
+    margin:20px;
+    border-radius:10px;
+    display:inline-block;
+    width:250px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+footer {
+    background:#2c3e50;
+    color:white;
+    text-align:center;
+    padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>XYZ College</h1>
+<p>Empowering Future Engineers</p>
+</header>
+
+<nav>
+<a href="index.php">Home</a>
+<a href="feedback.php">Give Feedback</a>
+<a href="view.php">View Feedback</a>
+</nav>
+
+<section>
+<h2>Welcome to XYZ College</h2>
+
+<div class="card">
+<h3>Top Faculty</h3>
+<p>Experienced professors and mentors</p>
+</div>
+
+<div class="card">
+<h3>Modern Labs</h3>
+<p>Advanced infrastructure and labs</p>
+</div>
+
+<div class="card">
+<h3>Placements</h3>
+<p>Excellent placement opportunities</p>
+</div>
+
+</section>
+
+<footer>
+<p>© 2026 XYZ College</p>
+</footer>
+
+</body>
+</html>
+
+
+sudo nano feedback.php
+<?php
+$conn = new mysqli("10.0.2.15", "root", "root123", "college");
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST['name'];
+    $course = $_POST['course'];
+    $message = $_POST['message'];
+
+    $sql = "INSERT INTO feedback (name, course, message)
+            VALUES ('$name','$course','$message')";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "<p style='color:green;text-align:center;'>Feedback submitted successfully!</p>";
+    } else {
+        echo "Error: " . $conn->error;
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Feedback</title>
+
+<style>
+body { font-family: Arial; background:#f4f6f7; text-align:center; }
+
+form {
+    background:#ecf0f1;
+    padding:20px;
+    width:300px;
+    margin:auto;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+input, textarea {
+    width:90%;
+    margin:10px;
+    padding:8px;
+}
+
+button {
+    background:#2c3e50;
+    color:white;
+    padding:10px;
+    border:none;
+    cursor:pointer;
+}
+
+button:hover { background:#34495e; }
+</style>
+</head>
+
+<body>
+
+<h2>Student Feedback</h2>
+
+<form method="post">
+<input type="text" name="name" placeholder="Your Name" required><br>
+<input type="text" name="course" placeholder="Course" required><br>
+<textarea name="message" placeholder="Your Feedback" required></textarea><br>
+<button type="submit">Submit</button>
+</form>
+
+<br>
+<a href="index.php">⬅ Back to Home</a>
+
+</body>
+</html>
+
+
+sudo nano view.php
+view.php
+<?php
+$conn = new mysqli("10.0.2.189", "root", "root123", "college");
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$result = $conn->query("SELECT * FROM feedback ORDER BY created_at DESC");
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>View Feedback</title>
+
+<style>
+body { font-family: Arial; background:#f4f6f7; text-align:center; }
+
+table {
+    border-collapse: collapse;
+    margin:auto;
+    width:80%;
+    background:white;
+}
+
+th, td {
+    border:1px solid black;
+    padding:10px;
+}
+
+th {
+    background:#2c3e50;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Student Feedback</h2>
+
+<table>
+<tr>
+<th>Name</th>
+<th>Course</th>
+<th>Message</th>
+<th>Date</th>
+</tr>
+
+<?php
+while($row = $result->fetch_assoc()) {
+    echo "<tr>
+            <td>{$row['name']}</td>
+            <td>{$row['course']}</td>
+            <td>{$row['message']}</td>
+            <td>{$row['created_at']}</td>
+          </tr>";
+}
+?>
+
+</table>
+
+<br>
+<a href="index.php">⬅ Back to Home</a>
+
+</body>
+</html>
+
+sudo systemctl restart httpd

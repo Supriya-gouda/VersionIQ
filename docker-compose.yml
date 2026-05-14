@@ -1,0 +1,148 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VersionIQ — Full-stack Docker Compose
+#
+# Services:
+#   mongodb  — Document database (mongo:7.0-alpine)
+#   backend  — Express API (Node 20, port 4000)
+#   frontend — React/Vite preview server (Node 20, port 3000)
+#
+# Usage:
+#   docker compose up --build -d          # start everything
+#   docker compose logs -f backend        # tail backend logs
+#   docker compose down -v                # stop and remove volumes
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0-alpine
+    container_name: version-vault-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: version_vault
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    networks:
+      - version-vault-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+  # ── Express Backend API ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: version-vault-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 4000
+      # Override MONGODB_URI so the backend connects to the compose service,
+      # not to localhost (which would be the container itself).
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-changeme}@mongodb:27017/version_vault?authSource=admin
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:3000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENABLE_RATE_LIMIT: "true"
+      # Jenkins integration — optional; leave blank to disable
+      JENKINS_BASE_URL: ${JENKINS_BASE_URL:-}
+      JENKINS_USER: ${JENKINS_USER:-}
+      JENKINS_TOKEN: ${JENKINS_TOKEN:-}
+      JENKINS_JOB_NAME: ${JENKINS_JOB_NAME:-VersionIQ}
+      JENKINS_WEBHOOK_SECRET: ${JENKINS_WEBHOOK_SECRET:-}
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - backend_logs:/app/logs
+    networks:
+      - version-vault-network
+    healthcheck:
+      # /health is a lightweight endpoint that does not touch the database.
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  # ── React Frontend ─────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        NODE_ENV: production
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4000}
+    container_name: version-vault-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - version-vault-network
+    healthcheck:
+      # Vite preview serves the SPA; a 200 on / confirms it is up.
+      test: ["CMD", "curl", "-f", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+networks:
+  version-vault-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+    driver: local
+  mongo_config:
+    driver: local
+  backend_logs:
+    driver: local
