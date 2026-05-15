@@ -17,12 +17,13 @@ import {
 } from "../controllers/files.controller.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { uploadMiddleware } from "../config/multer.js";
+import { rateLimiters } from "../middleware/rate-limit.js";
 
 export const fileRouter = Router();
 
 fileRouter.use(requireAuth);
 
-fileRouter.post("/upload", uploadMiddleware.single("file"), uploadFileController);
+fileRouter.post("/upload", rateLimiters.upload, uploadMiddleware.single("file"), uploadFileController);
 fileRouter.get("/", listFilesController);
 fileRouter.get("/quota", getQuotaController);
 fileRouter.get("/activities", listActivitiesController);

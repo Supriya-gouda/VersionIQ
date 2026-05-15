@@ -9,10 +9,9 @@ import {
   errorHandler,
   notFoundHandler,
   asyncHandler,
-  ApiError,
 } from "./middleware/error-handler.js";
 import { responseFormatter } from "./middleware/response-formatter.js";
-import { rateLimit, rateLimiters } from "./middleware/rate-limit.js";
+import { rateLimiters } from "./middleware/rate-limit.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { fileRouter } from "./routes/file.routes.js";
 import { pipelineRouter } from "./routes/pipeline.routes.js";
@@ -47,11 +46,6 @@ export function createApp() {
 
   // Serve uploads as static
   app.use("/uploads", express.static(path.resolve(process.cwd(), env.uploadRoot)));
-
-  // Global rate limiting (if enabled)
-  if (env.enableRateLimit) {
-    app.use(rateLimit());
-  }
 
   // Health check endpoints — both /health and /api/health are supported
   // so Jenkins, Docker, and external monitors can all use their preferred path.

@@ -79,7 +79,8 @@ export function rateLimit({
       if (onLimit) {
         onLimit(req, res, key);
       }
-      throw ApiError.badRequest(
+      throw new ApiError(
+        429,
         "RATE_LIMIT_EXCEEDED",
         "Too many requests. Please try again later."
       );

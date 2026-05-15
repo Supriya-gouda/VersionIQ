@@ -397,7 +397,7 @@ host-agent             → Jenkins runs directly on the host'''
     }
 
     always {
-      cleanWs()
+      deleteDir()
     }
   }
 }

@@ -51,14 +51,13 @@ RUN node --version && npm --version && docker --version && docker compose versio
 # Switch back to the jenkins user for runtime
 USER jenkins
 
-# Pre-install recommended Jenkins plugins (optional — remove if you prefer
-# to install plugins via the UI on first run)
-RUN jenkins-plugin-cli --plugins \
-      "git:latest \
-       workflow-aggregator:latest \
-       pipeline-stage-view:latest \
-       docker-workflow:latest \
-       credentials-binding:latest \
-       timestamper:latest \
-       ws-cleanup:latest \
-       ansicolor:latest"
+# Pre-install recommended Jenkins plugins (commented out due to mirror reliability issues)
+# RUN jenkins-plugin-cli --plugins \
+#       "git:latest \
+#        workflow-aggregator:latest \
+#        pipeline-stage-view:latest \
+#        docker-workflow:latest \
+#        credentials-binding:latest \
+#        timestamper:latest \
+#        ws-cleanup:latest \
+#        ansicolor:latest"
