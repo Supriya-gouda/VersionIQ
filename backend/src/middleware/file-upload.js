@@ -68,28 +68,19 @@ export function validateFileUpload(file, options = {}) {
   // Check file size
   if (size > maxSize) {
     const maxMb = (maxSize / (1024 * 1024)).toFixed(2);
-    throw ApiError.badRequest(
-      "FILE_TOO_LARGE",
-      `File size must be less than ${maxMb}MB`
-    );
+    throw ApiError.badRequest("FILE_TOO_LARGE", `File size must be less than ${maxMb}MB`);
   }
 
   // Check MIME type
   if (!allowedTypes.includes(mimetype)) {
-    throw ApiError.badRequest(
-      "INVALID_FILE_TYPE",
-      `File type ${mimetype} is not allowed`
-    );
+    throw ApiError.badRequest("INVALID_FILE_TYPE", `File type ${mimetype} is not allowed`);
   }
 
   // Check extension if specified
   if (allowedExtensions) {
     const ext = originalname.split(".").pop().toLowerCase();
     if (!allowedExtensions.includes(ext)) {
-      throw ApiError.badRequest(
-        "INVALID_FILE_EXTENSION",
-        `File extension .${ext} is not allowed`
-      );
+      throw ApiError.badRequest("INVALID_FILE_EXTENSION", `File extension .${ext} is not allowed`);
     }
   }
 
@@ -102,11 +93,7 @@ export function validateFileUpload(file, options = {}) {
     isDocument: mimetype.includes("document") || mimetype.includes("pdf"),
     isText:
       mimetype.startsWith("text/") ||
-      [
-        "application/json",
-        "application/xml",
-        "application/yaml",
-      ].includes(mimetype),
+      ["application/json", "application/xml", "application/yaml"].includes(mimetype),
   };
 }
 
@@ -135,7 +122,7 @@ export function fileUploadValidator(options = {}) {
 export function sanitizeFilename(filename) {
   // Remove path separators and dangerous characters
   return filename
-    .replace(/\.\./g, "") // Remove .. 
+    .replace(/\.\./g, "") // Remove ..
     .replace(/[\/\\]/g, "") // Remove slashes
     .replace(/[<>:"|?*]/g, "") // Remove Windows forbidden chars
     .substring(0, 255); // Limit length

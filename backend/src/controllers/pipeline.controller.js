@@ -122,7 +122,7 @@ export const pipelineWebhookController = asyncHandler(async (req, res) => {
         syncedAt: new Date(),
       },
     },
-    { upsert: true }
+    { upsert: true },
   );
 
   res.status(200).json({

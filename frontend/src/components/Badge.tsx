@@ -1,6 +1,14 @@
 import { ReactNode } from "react";
 
-type Variant = "stable" | "risky" | "failed" | "running" | "pending" | "success" | "info" | "neutral";
+type Variant =
+  | "stable"
+  | "risky"
+  | "failed"
+  | "running"
+  | "pending"
+  | "success"
+  | "info"
+  | "neutral";
 
 const variants: Record<Variant, string> = {
   stable: "bg-success/15 text-success border-success/30",
@@ -13,9 +21,19 @@ const variants: Record<Variant, string> = {
   neutral: "bg-muted text-muted-foreground border-border",
 };
 
-export function Badge({ variant = "neutral", children, className = "" }: { variant?: Variant; children: ReactNode; className?: string }) {
+export function Badge({
+  variant = "neutral",
+  children,
+  className = "",
+}: {
+  variant?: Variant;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${variants[variant]} ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${variants[variant]} ${className}`}
+    >
       {children}
     </span>
   );

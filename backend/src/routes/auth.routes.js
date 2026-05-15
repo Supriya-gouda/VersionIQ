@@ -20,7 +20,12 @@ authRouter.post(
   validateRequiredFields(["name", "email", "password"]),
   registerController,
 );
-authRouter.post("/login", rateLimiters.auth, validateRequiredFields(["email", "password"]), loginController);
+authRouter.post(
+  "/login",
+  rateLimiters.auth,
+  validateRequiredFields(["email", "password"]),
+  loginController,
+);
 authRouter.get("/me", requireAuth, meController);
 authRouter.put("/me", requireAuth, updateProfileController);
 authRouter.post("/avatar", requireAuth, uploadMiddleware.single("avatar"), uploadAvatarController);

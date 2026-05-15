@@ -27,7 +27,12 @@ export class ApiResponse {
   }
 
   static noContent() {
-    return { success: true, message: "No content", data: null, timestamp: new Date().toISOString() };
+    return {
+      success: true,
+      message: "No content",
+      data: null,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   static list(items, total, page = 1, pageSize = 20) {
@@ -73,27 +78,19 @@ export class ApiResponse {
  */
 export function responseFormatter(req, res, next) {
   res.sendSuccess = (data, message, statusCode = 200) => {
-    return res.status(statusCode).json(
-      ApiResponse.ok(data, message)
-    );
+    return res.status(statusCode).json(ApiResponse.ok(data, message));
   };
 
   res.sendCreated = (data, message = "Created successfully") => {
-    return res.status(201).json(
-      ApiResponse.created(data, message)
-    );
+    return res.status(201).json(ApiResponse.created(data, message));
   };
 
   res.sendList = (items, total, page = 1, pageSize = 20) => {
-    return res.status(200).json(
-      ApiResponse.list(items, total, page, pageSize)
-    );
+    return res.status(200).json(ApiResponse.list(items, total, page, pageSize));
   };
 
   res.sendPaginated = (items, total, pageNumber, pageSize) => {
-    return res.status(200).json(
-      ApiResponse.paginated(items, total, pageNumber, pageSize)
-    );
+    return res.status(200).json(ApiResponse.paginated(items, total, pageNumber, pageSize));
   };
 
   next();

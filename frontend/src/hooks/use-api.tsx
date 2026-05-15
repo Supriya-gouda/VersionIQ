@@ -7,7 +7,7 @@ import { ApiErrorResponse } from "./api-enhanced";
 export function useAsync<T, E = string>(
   asyncFunction: () => Promise<T>,
   immediate: boolean = true,
-  dependencies: unknown[] = []
+  dependencies: unknown[] = [],
 ) {
   const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const [data, setData] = useState<T | null>(null);
@@ -25,9 +25,7 @@ export function useAsync<T, E = string>(
       return response;
     } catch (err) {
       const error =
-        err instanceof ApiErrorResponse
-          ? (err as unknown as E)
-          : (String(err) as unknown as E);
+        err instanceof ApiErrorResponse ? (err as unknown as E) : (String(err) as unknown as E);
       setError(error);
       setStatus("error");
       throw err;
@@ -54,9 +52,7 @@ export function useAsync<T, E = string>(
 /**
  * useRequest Hook - Simplified API request with error handling
  */
-export function useRequest<T>(
-  fn: (...args: any[]) => Promise<T>
-) {
+export function useRequest<T>(fn: (...args: any[]) => Promise<T>) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,8 +71,8 @@ export function useRequest<T>(
           err instanceof Error
             ? err.message
             : err instanceof ApiErrorResponse
-            ? err.message
-            : "An error occurred";
+              ? err.message
+              : "An error occurred";
 
         setError(message);
         throw err;
@@ -84,7 +80,7 @@ export function useRequest<T>(
         setIsLoading(false);
       }
     },
-    [fn]
+    [fn],
   );
 
   return {
@@ -100,7 +96,7 @@ export function useRequest<T>(
  */
 export function useForm<T extends Record<string, any>>(
   initialValues: T,
-  onSubmit: (values: T) => Promise<void>
+  onSubmit: (values: T) => Promise<void>,
 ) {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
@@ -110,10 +106,7 @@ export function useForm<T extends Record<string, any>>(
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const { name, value, type } = e.target;
-      const finalValue =
-        type === "checkbox"
-          ? (e.target as HTMLInputElement).checked
-          : value;
+      const finalValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
 
       setValues((prev) => ({
         ...prev,
@@ -128,7 +121,7 @@ export function useForm<T extends Record<string, any>>(
         });
       }
     },
-    [errors]
+    [errors],
   );
 
   const handleSubmit = useCallback(
@@ -144,15 +137,15 @@ export function useForm<T extends Record<string, any>>(
           err instanceof Error
             ? err.message
             : err instanceof ApiErrorResponse
-            ? err.message
-            : "Submission failed";
+              ? err.message
+              : "Submission failed";
 
         setSubmitError(message);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [values, onSubmit]
+    [values, onSubmit],
   );
 
   const reset = useCallback(() => {
@@ -161,15 +154,12 @@ export function useForm<T extends Record<string, any>>(
     setSubmitError(null);
   }, [initialValues]);
 
-  const setFieldError = useCallback(
-    (field: keyof T, message: string) => {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: message,
-      }));
-    },
-    []
-  );
+  const setFieldError = useCallback((field: keyof T, message: string) => {
+    setErrors((prev) => ({
+      ...prev,
+      [field]: message,
+    }));
+  }, []);
 
   return {
     values,
@@ -193,9 +183,12 @@ export function usePagination(initialPage: number = 1, pageSize: number = 10) {
 
   const totalPages = Math.ceil(total / pageSize);
 
-  const goToPage = useCallback((pageNumber: number) => {
-    setPage(Math.max(1, Math.min(pageNumber, totalPages)));
-  }, [totalPages]);
+  const goToPage = useCallback(
+    (pageNumber: number) => {
+      setPage(Math.max(1, Math.min(pageNumber, totalPages)));
+    },
+    [totalPages],
+  );
 
   const nextPage = useCallback(() => {
     goToPage(page + 1);
@@ -224,7 +217,7 @@ export function usePagination(initialPage: number = 1, pageSize: number = 10) {
  */
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T
+  initialValue: T,
 ): [T, (value: T | ((val: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
@@ -252,7 +245,7 @@ export function useLocalStorage<T>(
         console.error(`Failed to save to localStorage: ${key}`);
       }
     },
-    [key, storedValue]
+    [key, storedValue],
   );
 
   return [storedValue, setValue];

@@ -1,8 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ReactNode, useState, useEffect } from "react";
 import {
-  LayoutDashboard, Files, GitBranch, Sparkles, ShieldCheck, Boxes,
-  Settings, Search, Bell, Menu, X, GitMerge,
+  LayoutDashboard,
+  Files,
+  GitBranch,
+  Sparkles,
+  ShieldCheck,
+  Boxes,
+  Settings,
+  Search,
+  Bell,
+  Menu,
+  X,
+  GitMerge,
 } from "lucide-react";
 import { getQuota, type ApiQuota } from "@/lib/api";
 
@@ -27,8 +37,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       .catch((err) => console.error("Failed to load quota", err));
   }, [path]); // Refresh on navigation
 
-  const usedGb = quota ? (quota.used / (1024 ** 3)).toFixed(1) : "0.0";
-  const limitGb = quota ? (quota.limit / (1024 ** 3)).toFixed(0) : "10";
+  const usedGb = quota ? (quota.used / 1024 ** 3).toFixed(1) : "0.0";
+  const limitGb = quota ? (quota.limit / 1024 ** 3).toFixed(0) : "10";
   const percent = quota ? quota.percent : 0;
 
   return (
@@ -70,18 +80,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="rounded-lg p-3 bg-sidebar-accent/50">
             <div className="text-xs text-sidebar-foreground/70 mb-1">Storage</div>
             <div className="h-1.5 rounded-full bg-sidebar-border overflow-hidden">
-              <div className="h-full bg-gradient-primary transition-smooth" style={{ width: `${percent}%` }} />
+              <div
+                className="h-full bg-gradient-primary transition-smooth"
+                style={{ width: `${percent}%` }}
+              />
             </div>
-            <div className="text-xs mt-2 text-sidebar-foreground/70">{usedGb} GB of {limitGb} GB used</div>
+            <div className="text-xs mt-2 text-sidebar-foreground/70">
+              {usedGb} GB of {limitGb} GB used
+            </div>
           </div>
         </div>
       </aside>
 
       {open && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setOpen(false)} />
       )}
 
       {/* Main */}

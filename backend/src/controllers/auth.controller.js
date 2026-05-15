@@ -1,4 +1,10 @@
-import { getProfile, loginUser, registerUser, updateProfile, updateAvatar } from "../services/auth.service.js";
+import {
+  getProfile,
+  loginUser,
+  registerUser,
+  updateProfile,
+  updateAvatar,
+} from "../services/auth.service.js";
 import { asyncHandler } from "../utils/async-handler.js";
 
 export const registerController = asyncHandler(async (req, res) => {

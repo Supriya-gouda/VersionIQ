@@ -23,7 +23,12 @@ export const fileRouter = Router();
 
 fileRouter.use(requireAuth);
 
-fileRouter.post("/upload", rateLimiters.upload, uploadMiddleware.single("file"), uploadFileController);
+fileRouter.post(
+  "/upload",
+  rateLimiters.upload,
+  uploadMiddleware.single("file"),
+  uploadFileController,
+);
 fileRouter.get("/", listFilesController);
 fileRouter.get("/quota", getQuotaController);
 fileRouter.get("/activities", listActivitiesController);

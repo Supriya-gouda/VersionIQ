@@ -128,7 +128,12 @@ export function isAuthenticated() {
   return Boolean(getAccessToken());
 }
 
-async function apiRequest<T>(path: string, method: HttpMethod, body?: BodyInit | object, isFormData = false): Promise<T> {
+async function apiRequest<T>(
+  path: string,
+  method: HttpMethod,
+  body?: BodyInit | object,
+  isFormData = false,
+): Promise<T> {
   const headers: HeadersInit = {};
   const token = getAccessToken();
 
@@ -237,22 +242,32 @@ export function getSummary(fileId: string, versionId?: string) {
 }
 
 export function getRecommendation(fileId: string) {
-  return apiRequest<{ recommendation: ApiRecommendation }>(`/files/${fileId}/recommendation`, "GET");
-}
-
-export function listPipelines() {
-  return apiRequest<{ pipelines: ApiPipelineLog[]; count: number; timestamp: string }>("/pipelines/status", "GET");
-}
-
-export function syncPipelines() {
-  return apiRequest<{ sync: { synced: number; skipped: boolean; message?: string }; pipelines: ApiPipelineLog[]; count: number }>(
-    "/pipelines/sync",
-    "POST",
+  return apiRequest<{ recommendation: ApiRecommendation }>(
+    `/files/${fileId}/recommendation`,
+    "GET",
   );
 }
 
+export function listPipelines() {
+  return apiRequest<{ pipelines: ApiPipelineLog[]; count: number; timestamp: string }>(
+    "/pipelines/status",
+    "GET",
+  );
+}
+
+export function syncPipelines() {
+  return apiRequest<{
+    sync: { synced: number; skipped: boolean; message?: string };
+    pipelines: ApiPipelineLog[];
+    count: number;
+  }>("/pipelines/sync", "POST");
+}
+
 export function getPipelineStats(days = 7) {
-  return apiRequest<{ stats: ApiPipelineStats; days: number }>(`/pipelines/stats?days=${days}`, "GET");
+  return apiRequest<{ stats: ApiPipelineStats; days: number }>(
+    `/pipelines/stats?days=${days}`,
+    "GET",
+  );
 }
 
 export function getQuota() {

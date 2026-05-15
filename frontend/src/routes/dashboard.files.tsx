@@ -4,7 +4,19 @@ import { Badge } from "@/components/Badge";
 import { FileIcon } from "@/components/FileIcon";
 import { ApiFile, deleteFile, downloadFile, listFiles, uploadFile, shareFile } from "@/lib/api";
 import { useEffect, useMemo, useState } from "react";
-import { Upload, Search, Filter, Download, Trash2, Share2, X, GitBranch, CloudUpload, FileText, Globe } from "lucide-react";
+import {
+  Upload,
+  Search,
+  Filter,
+  Download,
+  Trash2,
+  Share2,
+  X,
+  GitBranch,
+  CloudUpload,
+  FileText,
+  Globe,
+} from "lucide-react";
 
 type FileType = "pdf" | "docx" | "txt" | "png" | "yaml";
 type RiskLevel = "stable" | "risky" | "failed";
@@ -106,7 +118,8 @@ function FilesPage() {
   const filtered = useMemo(
     () =>
       files.filter(
-        (f) => f.name.toLowerCase().includes(query.toLowerCase()) && (type === "all" || f.type === type),
+        (f) =>
+          f.name.toLowerCase().includes(query.toLowerCase()) && (type === "all" || f.type === type),
       ),
     [files, query, type],
   );
@@ -131,9 +144,9 @@ function FilesPage() {
     try {
       const response = await shareFile(id, isPublic);
       const updated = toViewModel(response.file);
-      setFiles(prev => prev.map(f => f.id === id ? updated : f));
+      setFiles((prev) => prev.map((f) => (f.id === id ? updated : f)));
       if (selected?.id === id) setSelected(updated);
-      
+
       if (isPublic) {
         const shareLink = `${window.location.origin}/shared/${response.file.shareToken}`;
         navigator.clipboard.writeText(shareLink);
@@ -173,9 +186,14 @@ function FilesPage() {
       <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold">Files</h1>
-          <p className="text-muted-foreground mt-1">Upload, version, and share — every save is a snapshot.</p>
+          <p className="text-muted-foreground mt-1">
+            Upload, version, and share — every save is a snapshot.
+          </p>
         </div>
-        <button onClick={() => setShowUpload(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant hover:opacity-90 transition-smooth text-sm font-medium">
+        <button
+          onClick={() => setShowUpload(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant hover:opacity-90 transition-smooth text-sm font-medium"
+        >
           <Upload className="w-4 h-4" /> Upload file
         </button>
       </div>
@@ -186,18 +204,20 @@ function FilesPage() {
           <input
             placeholder="Search files..."
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             className="w-full h-10 pl-10 pr-3 rounded-lg bg-card border border-border focus:outline-none focus:ring-2 focus:ring-ring/40 text-sm"
           />
         </div>
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-muted-foreground" />
-          {["all", "pdf", "docx", "txt", "png", "yaml"].map(t => (
+          {["all", "pdf", "docx", "txt", "png", "yaml"].map((t) => (
             <button
               key={t}
               onClick={() => setType(t)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-smooth ${
-                type === t ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-muted"
+                type === t
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card border-border hover:bg-muted"
               }`}
             >
               {t.toUpperCase()}
@@ -207,7 +227,9 @@ function FilesPage() {
       </div>
 
       <div className={`grid gap-6 ${selected ? "lg:grid-cols-3" : ""}`}>
-        <div className={`${selected ? "lg:col-span-2" : ""} rounded-xl border border-border bg-card shadow-card overflow-hidden`}>
+        <div
+          className={`${selected ? "lg:col-span-2" : ""} rounded-xl border border-border bg-card shadow-card overflow-hidden`}
+        >
           {loading ? (
             <div className="p-10 text-center text-sm text-muted-foreground">Loading files...</div>
           ) : filtered.length === 0 ? (
@@ -227,7 +249,11 @@ function FilesPage() {
                 </thead>
                 <tbody>
                   {filtered.map((f) => (
-                    <tr key={f.id} className={`border-t border-border hover:bg-muted/40 transition-smooth cursor-pointer ${selected?.id === f.id ? "bg-accent/30" : ""}`} onClick={() => setSelected(f)}>
+                    <tr
+                      key={f.id}
+                      className={`border-t border-border hover:bg-muted/40 transition-smooth cursor-pointer ${selected?.id === f.id ? "bg-accent/30" : ""}`}
+                      onClick={() => setSelected(f)}
+                    >
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <FileIcon type={f.type} size="sm" />
@@ -241,14 +267,41 @@ function FilesPage() {
                         </div>
                       </td>
                       <td className="px-5 py-3 text-muted-foreground">{f.owner}</td>
-                      <td className="px-5 py-3"><Badge variant={f.latestStatus}>{f.latestStatus}</Badge></td>
+                      <td className="px-5 py-3">
+                        <Badge variant={f.latestStatus}>{f.latestStatus}</Badge>
+                      </td>
                       <td className="px-5 py-3 text-muted-foreground">{f.updated}</td>
-                      <td className="px-5 py-3"><span className="inline-flex items-center gap-1 text-muted-foreground"><GitBranch className="w-3.5 h-3.5" /> {f.versionCount}</span></td>
+                      <td className="px-5 py-3">
+                        <span className="inline-flex items-center gap-1 text-muted-foreground">
+                          <GitBranch className="w-3.5 h-3.5" /> {f.versionCount}
+                        </span>
+                      </td>
                       <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => { downloadFile(f.id); notify("Download started"); }} className="p-2 rounded-lg hover:bg-muted" aria-label="Download"><Download className="w-4 h-4" /></button>
-                          <button onClick={() => handleShare(f.id, !f.isPublic)} className={`p-2 rounded-lg hover:bg-muted ${f.isPublic ? "text-primary" : ""}`} aria-label="Share"><Share2 className="w-4 h-4" /></button>
-                          <button onClick={() => remove(f.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" aria-label="Delete"><Trash2 className="w-4 h-4" /></button>
+                          <button
+                            onClick={() => {
+                              downloadFile(f.id);
+                              notify("Download started");
+                            }}
+                            className="p-2 rounded-lg hover:bg-muted"
+                            aria-label="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleShare(f.id, !f.isPublic)}
+                            className={`p-2 rounded-lg hover:bg-muted ${f.isPublic ? "text-primary" : ""}`}
+                            aria-label="Share"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => remove(f.id)}
+                            className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -266,10 +319,18 @@ function FilesPage() {
                 <FileIcon type={selected.type} size="lg" />
                 <div className="min-w-0">
                   <div className="font-semibold truncate">{selected.name}</div>
-                  <div className="text-xs text-muted-foreground">{selected.size} · {selected.type.toUpperCase()}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {selected.size} · {selected.type.toUpperCase()}
+                  </div>
                 </div>
               </div>
-              <button onClick={() => setSelected(null)} title="Close details" className="p-1.5 rounded-lg hover:bg-muted"><X className="w-4 h-4" /></button>
+              <button
+                onClick={() => setSelected(null)}
+                title="Close details"
+                className="p-1.5 rounded-lg hover:bg-muted"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             <div className="mt-5 rounded-lg bg-muted/50 border border-border p-4 grid place-items-center h-40">
@@ -277,19 +338,55 @@ function FilesPage() {
             </div>
 
             <dl className="mt-5 space-y-2 text-sm">
-              <div className="flex justify-between"><dt className="text-muted-foreground">Owner</dt><dd>{selected.owner}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Updated</dt><dd>{selected.updated}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Versions</dt><dd>{selected.versionCount}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Latest</dt><dd><Badge variant={selected.latestStatus}>{selected.latestVersionLabel}</Badge></dd></div>
-              <div className="flex justify-between"><dt className="text-muted-foreground">Public</dt><dd>{selected.isPublic ? "Yes" : "No"}</dd></div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Owner</dt>
+                <dd>{selected.owner}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Updated</dt>
+                <dd>{selected.updated}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Versions</dt>
+                <dd>{selected.versionCount}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Latest</dt>
+                <dd>
+                  <Badge variant={selected.latestStatus}>{selected.latestVersionLabel}</Badge>
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Public</dt>
+                <dd>{selected.isPublic ? "Yes" : "No"}</dd>
+              </div>
             </dl>
 
             <div className="mt-5 flex gap-2">
-              <button onClick={() => { downloadFile(selected.id); notify("Download started"); }} className="flex-1 h-9 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-medium shadow-elegant">Download</button>
-              <button onClick={() => { setTargetFileId(selected.id); setShowUpload(true); }} className="h-9 px-3 rounded-lg border border-border hover:bg-muted text-sm flex items-center gap-2">
+              <button
+                onClick={() => {
+                  downloadFile(selected.id);
+                  notify("Download started");
+                }}
+                className="flex-1 h-9 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-medium shadow-elegant"
+              >
+                Download
+              </button>
+              <button
+                onClick={() => {
+                  setTargetFileId(selected.id);
+                  setShowUpload(true);
+                }}
+                className="h-9 px-3 rounded-lg border border-border hover:bg-muted text-sm flex items-center gap-2"
+              >
                 <CloudUpload className="w-4 h-4" /> New version
               </button>
-              <button onClick={() => handleShare(selected.id, !selected.isPublic)} className={`h-9 px-3 rounded-lg border border-border hover:bg-muted text-sm ${selected.isPublic ? "text-primary border-primary/30" : ""}`}>Share</button>
+              <button
+                onClick={() => handleShare(selected.id, !selected.isPublic)}
+                className={`h-9 px-3 rounded-lg border border-border hover:bg-muted text-sm ${selected.isPublic ? "text-primary border-primary/30" : ""}`}
+              >
+                Share
+              </button>
             </div>
             {selected.isPublic && selected.shareToken && (
               <div className="mt-3 p-2 rounded bg-muted text-[10px] font-mono break-all border border-border">
@@ -300,17 +397,24 @@ function FilesPage() {
         )}
       </div>
 
-      {showUpload && <UploadModal 
-        onClose={() => { setShowUpload(false); setTargetFileId(null); }} 
-        targetFileName={targetFileId ? selected?.name : undefined}
-        onDone={async (file) => {
-          await onUploadSelected(file, targetFileId || undefined);
-          setShowUpload(false);
-          setTargetFileId(null);
-        }} 
-      />}
+      {showUpload && (
+        <UploadModal
+          onClose={() => {
+            setShowUpload(false);
+            setTargetFileId(null);
+          }}
+          targetFileName={targetFileId ? selected?.name : undefined}
+          onDone={async (file) => {
+            await onUploadSelected(file, targetFileId || undefined);
+            setShowUpload(false);
+            setTargetFileId(null);
+          }}
+        />
+      )}
       {toast && (
-        <div className="fixed bottom-6 right-6 px-4 py-3 rounded-lg bg-foreground text-background shadow-elegant text-sm">{toast}</div>
+        <div className="fixed bottom-6 right-6 px-4 py-3 rounded-lg bg-foreground text-background shadow-elegant text-sm">
+          {toast}
+        </div>
       )}
     </DashboardLayout>
   );
@@ -323,15 +427,28 @@ function EmptyState({ onUpload }: { onUpload: () => void }) {
         <CloudUpload className="w-7 h-7 text-accent-foreground" />
       </div>
       <h3 className="font-semibold">No files yet</h3>
-      <p className="text-sm text-muted-foreground mt-1">Upload your first file to start versioning.</p>
-      <button onClick={onUpload} className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-medium shadow-elegant">
+      <p className="text-sm text-muted-foreground mt-1">
+        Upload your first file to start versioning.
+      </p>
+      <button
+        onClick={onUpload}
+        className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-medium shadow-elegant"
+      >
         <Upload className="w-4 h-4" /> Upload file
       </button>
     </div>
   );
 }
 
-function UploadModal({ onClose, onDone, targetFileName }: { onClose: () => void; onDone: (file: File) => Promise<void>; targetFileName?: string }) {
+function UploadModal({
+  onClose,
+  onDone,
+  targetFileName,
+}: {
+  onClose: () => void;
+  onDone: (file: File) => Promise<void>;
+  targetFileName?: string;
+}) {
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -339,33 +456,57 @@ function UploadModal({ onClose, onDone, targetFileName }: { onClose: () => void;
   async function start() {
     if (!file) return;
     setUploading(true);
-    
+
     // Simulate initial phase
     setProgress(20);
     setTimeout(() => setProgress(60), 500);
-    
+
     await onDone(file);
-    
+
     setProgress(100);
     setTimeout(() => {
       setUploading(false);
     }, 300);
   }
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-elegant p-6 animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-card border border-border shadow-elegant p-6 animate-in fade-in zoom-in duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="font-semibold text-lg">{targetFileName ? "Upload new version" : "Upload file"}</h3>
-            {targetFileName && <p className="text-xs text-muted-foreground">Updating: <span className="font-medium text-primary">{targetFileName}</span></p>}
+            <h3 className="font-semibold text-lg">
+              {targetFileName ? "Upload new version" : "Upload file"}
+            </h3>
+            {targetFileName && (
+              <p className="text-xs text-muted-foreground">
+                Updating: <span className="font-medium text-primary">{targetFileName}</span>
+              </p>
+            )}
           </div>
-          <button onClick={onClose} title="Close upload dialog" className="p-1.5 rounded-lg hover:bg-muted transition-smooth"><X className="w-4 h-4" /></button>
+          <button
+            onClick={onClose}
+            title="Close upload dialog"
+            className="p-1.5 rounded-lg hover:bg-muted transition-smooth"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-smooth ${file ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30"}`}>
-          <CloudUpload className={`w-10 h-10 mx-auto mb-3 transition-smooth ${file ? "text-primary" : "text-muted-foreground"}`} />
+        <div
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-smooth ${file ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30"}`}
+        >
+          <CloudUpload
+            className={`w-10 h-10 mx-auto mb-3 transition-smooth ${file ? "text-primary" : "text-muted-foreground"}`}
+          />
           <div className="text-sm font-medium">{file ? file.name : "Drop your file here"}</div>
-          <div className="text-xs text-muted-foreground mt-1">{file ? formatFileSize(file.size) : "PDF, DOCX, TXT, PNG, YAML up to 50MB"}</div>
-          
+          <div className="text-xs text-muted-foreground mt-1">
+            {file ? formatFileSize(file.size) : "PDF, DOCX, TXT, PNG, YAML up to 50MB"}
+          </div>
+
           <input
             id="upload-file-input"
             type="file"
@@ -373,20 +514,33 @@ function UploadModal({ onClose, onDone, targetFileName }: { onClose: () => void;
             onChange={(event) => setFile(event.target.files?.[0] ?? null)}
           />
           {!file ? (
-            <label htmlFor="upload-file-input" className="mt-4 inline-block px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-sm font-medium cursor-pointer transition-smooth">
+            <label
+              htmlFor="upload-file-input"
+              className="mt-4 inline-block px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-sm font-medium cursor-pointer transition-smooth"
+            >
               Select file
             </label>
           ) : (
             <div className="mt-4 flex gap-2 justify-center">
-               <label htmlFor="upload-file-input" className="px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-xs font-medium cursor-pointer">Change</label>
-               <button onClick={() => setFile(null)} className="px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 text-xs font-medium">Remove</button>
+              <label
+                htmlFor="upload-file-input"
+                className="px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-xs font-medium cursor-pointer"
+              >
+                Change
+              </label>
+              <button
+                onClick={() => setFile(null)}
+                className="px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 text-xs font-medium"
+              >
+                Remove
+              </button>
             </div>
           )}
         </div>
-        
-        <button 
-          onClick={start} 
-          disabled={uploading || !file} 
+
+        <button
+          onClick={start}
+          disabled={uploading || !file}
           className="mt-6 w-full h-11 rounded-xl bg-gradient-primary text-primary-foreground font-semibold shadow-elegant disabled:opacity-50 disabled:shadow-none hover:opacity-90 transition-smooth flex items-center justify-center gap-2"
         >
           {uploading ? (
@@ -409,14 +563,17 @@ function UploadModal({ onClose, onDone, targetFileName }: { onClose: () => void;
               <span>{progress}%</span>
             </div>
             <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
+              <div
+                className="h-full bg-primary transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
             </div>
-            <div className="text-[10px] text-muted-foreground mt-2 text-center italic">Generating AI snapshot & computing diffs...</div>
+            <div className="text-[10px] text-muted-foreground mt-2 text-center italic">
+              Generating AI snapshot & computing diffs...
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-

@@ -102,15 +102,11 @@ function generateRecommendationRationale(
   recommendedVersion,
   recommendationScore,
   allVersions,
-  candidateIndex
+  candidateIndex,
 ) {
   const reasons = [];
   const confidenceLevel =
-    recommendationScore > 80
-      ? "high"
-      : recommendationScore > 60
-      ? "medium"
-      : "low";
+    recommendationScore > 80 ? "high" : recommendationScore > 60 ? "medium" : "low";
 
   // Reason 1: Stability
   if (recommendedVersion.status === "stable") {
@@ -170,7 +166,7 @@ export async function recommendRollback(versions, currentVersionNumber = null) {
         stabilityScore,
         classification: classifyVersion(stabilityScore),
       };
-    })
+    }),
   );
 
   // Sort by score (descending)
@@ -183,7 +179,7 @@ export async function recommendRollback(versions, currentVersionNumber = null) {
     recommended.version,
     recommended.stabilityScore,
     candidateVersions,
-    recommended.index
+    recommended.index,
   );
 
   return {
@@ -222,7 +218,7 @@ export async function rankVersionsByStability(versions) {
         classification: classifyVersion(stabilityScore),
         createdAt: version.createdAt,
       };
-    })
+    }),
   );
 
   scored.sort((a, b) => b.stabilityScore - a.stabilityScore);

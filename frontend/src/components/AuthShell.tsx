@@ -3,8 +3,16 @@ import { Link } from "@tanstack/react-router";
 import { GitMerge } from "lucide-react";
 
 export default function AuthShell({
-  title, subtitle, children, footer,
-}: { title: string; subtitle: string; children: ReactNode; footer: ReactNode }) {
+  title,
+  subtitle,
+  children,
+  footer,
+}: {
+  title: string;
+  subtitle: string;
+  children: ReactNode;
+  footer: ReactNode;
+}) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
       <div className="hidden lg:flex relative bg-gradient-hero items-center justify-center p-12 overflow-hidden">
@@ -16,12 +24,18 @@ export default function AuthShell({
             </div>
             <span className="font-display font-semibold text-xl">VersaVault</span>
           </Link>
-          <h2 className="text-3xl font-bold leading-tight">Version every file. Rollback with confidence.</h2>
-          <p className="mt-3 text-muted-foreground">AI-powered change summaries, smart rollback, and CI/CD — all in one workspace.</p>
+          <h2 className="text-3xl font-bold leading-tight">
+            Version every file. Rollback with confidence.
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            AI-powered change summaries, smart rollback, and CI/CD — all in one workspace.
+          </p>
           <div className="mt-10 rounded-2xl bg-card border border-border p-5 shadow-elegant text-left animate-float">
             <div className="text-xs text-muted-foreground">Latest summary</div>
             <div className="mt-1 text-sm font-medium">v1.4.2 · deployment-config.yaml</div>
-            <p className="text-xs text-muted-foreground mt-2">Scaled to 8 replicas, added 2 env vars. Rollback to v1.4.1 recommended.</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Scaled to 8 replicas, added 2 env vars. Rollback to v1.4.1 recommended.
+            </p>
           </div>
         </div>
       </div>
@@ -44,10 +58,21 @@ export default function AuthShell({
 }
 
 export function Field({
-  label, type = "text", placeholder, value, onChange, error, autoComplete,
+  label,
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  error,
+  autoComplete,
 }: {
-  label: string; type?: string; placeholder?: string; value: string;
-  onChange: (v: string) => void; error?: string; autoComplete?: string;
+  label: string;
+  type?: string;
+  placeholder?: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+  autoComplete?: string;
 }) {
   return (
     <label className="block">

@@ -24,11 +24,34 @@ function isTextLikeMime(mimeType, originalName = "") {
 
   // Fallback to extension check
   const textExtensions = [
-    ".txt", ".md", ".json", ".yaml", ".yml", ".js", ".ts", ".jsx", ".tsx", 
-    ".html", ".css", ".py", ".sh", ".env", ".c", ".cpp", ".h", ".go", 
-    ".rb", ".php", ".java", ".sql", ".ini", ".conf", ".xml", ".csv"
+    ".txt",
+    ".md",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".js",
+    ".ts",
+    ".jsx",
+    ".tsx",
+    ".html",
+    ".css",
+    ".py",
+    ".sh",
+    ".env",
+    ".c",
+    ".cpp",
+    ".h",
+    ".go",
+    ".rb",
+    ".php",
+    ".java",
+    ".sql",
+    ".ini",
+    ".conf",
+    ".xml",
+    ".csv",
   ];
-  return textExtensions.some(ext => originalName.toLowerCase().endsWith(ext));
+  return textExtensions.some((ext) => originalName.toLowerCase().endsWith(ext));
 }
 
 async function readTextIfPossible(filePath, mimeType, originalName = "") {
@@ -54,7 +77,12 @@ async function moveUploadedFile(tempPath, targetPath) {
   await fs.rename(tempPath, targetPath);
 }
 
-export async function createOrUpdateFileVersion({ userId, upload, fileId = null, status = "stable" }) {
+export async function createOrUpdateFileVersion({
+  userId,
+  upload,
+  fileId = null,
+  status = "stable",
+}) {
   if (!upload) {
     throw new AppError(400, "File is required");
   }
@@ -94,7 +122,11 @@ export async function createOrUpdateFileVersion({ userId, upload, fileId = null,
   await moveUploadedFile(upload.path, finalPath);
 
   const previousText = lastVersion
-    ? await readTextIfPossible(lastVersion.storagePath, lastVersion.mimeType, lastVersion.originalName)
+    ? await readTextIfPossible(
+        lastVersion.storagePath,
+        lastVersion.mimeType,
+        lastVersion.originalName,
+      )
     : "";
   const nextText = await readTextIfPossible(finalPath, upload.mimetype, upload.originalname);
 
@@ -114,7 +146,10 @@ export async function createOrUpdateFileVersion({ userId, upload, fileId = null,
     console.error(`[ERROR] Failed to generate diff/summary: ${error.message}`);
   }
 
-  await Version.updateMany({ file: fileRecord._id, isCurrent: true }, { $set: { isCurrent: false } });
+  await Version.updateMany(
+    { file: fileRecord._id, isCurrent: true },
+    { $set: { isCurrent: false } },
+  );
 
   const version = await Version.create({
     file: fileRecord._id,
@@ -171,7 +206,10 @@ export async function restoreVersion({ userId, fileId, versionId }) {
 
   await fs.copyFile(selectedVersion.storagePath, copiedPath);
 
-  await Version.updateMany({ file: fileRecord._id, isCurrent: true }, { $set: { isCurrent: false } });
+  await Version.updateMany(
+    { file: fileRecord._id, isCurrent: true },
+    { $set: { isCurrent: false } },
+  );
 
   const restoredVersion = await Version.create({
     file: fileRecord._id,

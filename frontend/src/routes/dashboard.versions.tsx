@@ -2,7 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/Badge";
 import { FileIcon } from "@/components/FileIcon";
-import { listFiles, listVersions, restoreVersion, compareVersions, type ApiFile, type ApiVersion } from "@/lib/api";
+import {
+  listFiles,
+  listVersions,
+  restoreVersion,
+  compareVersions,
+  type ApiFile,
+  type ApiVersion,
+} from "@/lib/api";
 import { useEffect, useMemo, useState } from "react";
 import { GitCommit, RotateCcw, GitCompare, Plus, Minus, Pencil, Sparkles } from "lucide-react";
 
@@ -73,10 +80,14 @@ function VersionsPage() {
   return (
     <DashboardLayout>
       <h1 className="text-3xl font-bold">Version history</h1>
-      <p className="text-muted-foreground mt-1">Browse the timeline, compare versions, and restore in one click.</p>
+      <p className="text-muted-foreground mt-1">
+        Browse the timeline, compare versions, and restore in one click.
+      </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        {loading ? <span className="text-sm text-muted-foreground">Loading versions...</span> : null}
+        {loading ? (
+          <span className="text-sm text-muted-foreground">Loading versions...</span>
+        ) : null}
         <select
           value={fileId}
           title="Select file"
@@ -99,7 +110,8 @@ function VersionsPage() {
           }}
           className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-smooth ${compareMode ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-muted"}`}
         >
-          <GitCompare className="w-4 h-4" /> {compareMode ? "Pick a version to compare" : "Compare versions"}
+          <GitCompare className="w-4 h-4" />{" "}
+          {compareMode ? "Pick a version to compare" : "Compare versions"}
         </button>
       </div>
 
@@ -108,7 +120,9 @@ function VersionsPage() {
           <div className="flex items-center gap-3 mb-4">
             <FileIcon type="txt" size="sm" />
             <div className="min-w-0">
-              <div className="font-semibold truncate">{file?.originalName ?? "No file selected"}</div>
+              <div className="font-semibold truncate">
+                {file?.originalName ?? "No file selected"}
+              </div>
               <div className="text-xs text-muted-foreground">{versions.length} versions</div>
             </div>
           </div>
@@ -118,7 +132,9 @@ function VersionsPage() {
               const isCmp = version._id === compareWith;
               return (
                 <li key={version._id} className="relative pb-5 last:pb-0">
-                  <span className={`absolute -left-4.5 top-1 w-3.5 h-3.5 rounded-full border-2 ${active ? "bg-primary border-primary" : isCmp ? "bg-info border-info" : "bg-card border-border"}`} />
+                  <span
+                    className={`absolute -left-4.5 top-1 w-3.5 h-3.5 rounded-full border-2 ${active ? "bg-primary border-primary" : isCmp ? "bg-info border-info" : "bg-card border-border"}`}
+                  />
                   <button
                     onClick={async () => {
                       if (compareMode && version._id !== selected) {
@@ -138,10 +154,14 @@ function VersionsPage() {
                     className={`w-full text-left rounded-lg p-3 transition-smooth border ${active ? "border-primary bg-primary/5" : isCmp ? "border-info bg-info/5" : "border-transparent hover:bg-muted/50"}`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-sm font-medium">v{version.versionNumber}</span>
+                      <span className="font-mono text-sm font-medium">
+                        v{version.versionNumber}
+                      </span>
                       <Badge variant={version.status}>{version.status}</Badge>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">{new Date(version.createdAt).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {new Date(version.createdAt).toLocaleString()}
+                    </div>
                     <div className="text-sm mt-1.5">{version.summary}</div>
                   </button>
                 </li>
@@ -156,33 +176,64 @@ function VersionsPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <GitCommit className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-mono font-medium">v{selectedVersion?.versionNumber ?? 0}</span>
-                  <Badge variant={selectedVersion?.status ?? "stable"}>{selectedVersion?.status ?? "stable"}</Badge>
+                  <span className="font-mono font-medium">
+                    v{selectedVersion?.versionNumber ?? 0}
+                  </span>
+                  <Badge variant={selectedVersion?.status ?? "stable"}>
+                    {selectedVersion?.status ?? "stable"}
+                  </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-muted-foreground mt-1">
                     {selectedVersion ? new Date(selectedVersion.createdAt).toLocaleString() : ""}
                   </div>
                   {selectedVersion?.summarySource && (
-                    <Badge variant={selectedVersion.summarySource === "local" ? "outline" : "secondary"} className="text-[10px] uppercase">
-                      {selectedVersion.summarySource} {selectedVersion.summaryModel && `(${selectedVersion.summaryModel})`}
+                    <Badge
+                      variant={selectedVersion.summarySource === "local" ? "outline" : "secondary"}
+                      className="text-[10px] uppercase"
+                    >
+                      {selectedVersion.summarySource}{" "}
+                      {selectedVersion.summaryModel && `(${selectedVersion.summaryModel})`}
                     </Badge>
                   )}
                 </div>
                 <p className="mt-3 text-sm">{selectedVersion?.summary ?? "No version selected"}</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => notify(`Selected v${selectedVersion?.versionNumber ?? 0}`)} className="px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted text-sm">Select</button>
-                <button onClick={() => selectedVersion && handleRestore(selectedVersion._id)} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-medium shadow-elegant">
+                <button
+                  onClick={() => notify(`Selected v${selectedVersion?.versionNumber ?? 0}`)}
+                  className="px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted text-sm"
+                >
+                  Select
+                </button>
+                <button
+                  onClick={() => selectedVersion && handleRestore(selectedVersion._id)}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-primary text-primary-foreground text-sm font-medium shadow-elegant"
+                >
                   <RotateCcw className="w-4 h-4" /> Restore
                 </button>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3 mt-5 text-sm">
-              <Stat icon={Plus} color="text-success" label="Added" value={selectedVersion?.diffStats.added ?? 0} />
-              <Stat icon={Minus} color="text-destructive" label="Removed" value={selectedVersion?.diffStats.removed ?? 0} />
-              <Stat icon={Pencil} color="text-warning-foreground" label="Modified" value={selectedVersion?.diffStats.modified ?? 0} />
+              <Stat
+                icon={Plus}
+                color="text-success"
+                label="Added"
+                value={selectedVersion?.diffStats.added ?? 0}
+              />
+              <Stat
+                icon={Minus}
+                color="text-destructive"
+                label="Removed"
+                value={selectedVersion?.diffStats.removed ?? 0}
+              />
+              <Stat
+                icon={Pencil}
+                color="text-warning-foreground"
+                label="Modified"
+                value={selectedVersion?.diffStats.modified ?? 0}
+              />
             </div>
           </div>
 
@@ -193,10 +244,14 @@ function VersionsPage() {
               </div>
               <div>
                 <div className="font-semibold">AI change summary</div>
-                <div className="text-xs text-muted-foreground">Auto-generated � what changed in v{selectedVersion?.versionNumber ?? 0}</div>
+                <div className="text-xs text-muted-foreground">
+                  Auto-generated � what changed in v{selectedVersion?.versionNumber ?? 0}
+                </div>
               </div>
             </div>
-            <p className="text-sm leading-relaxed">{selectedVersion?.summary ?? "No summary available"}</p>
+            <p className="text-sm leading-relaxed">
+              {selectedVersion?.summary ?? "No summary available"}
+            </p>
             <div className="grid sm:grid-cols-3 gap-3 mt-5">
               <HighlightBox tone="success" title="Added" items={[]} />
               <HighlightBox tone="destructive" title="Removed" items={[]} />
@@ -209,19 +264,29 @@ function VersionsPage() {
               <div className="flex items-center gap-2 mb-3">
                 <GitCompare className="w-4 h-4 text-info" />
                 <span className="font-medium">
-                  Comparing <span className="font-mono">v{selectedVersion.versionNumber}</span> vs <span className="font-mono">v{compareVersion.versionNumber}</span>
+                  Comparing <span className="font-mono">v{selectedVersion.versionNumber}</span> vs{" "}
+                  <span className="font-mono">v{compareVersion.versionNumber}</span>
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Net difference: <span className="text-success">+{selectedVersion.diffStats.added - compareVersion.diffStats.added}</span>{" "}
-                <span className="text-destructive">-{Math.abs(selectedVersion.diffStats.removed - compareVersion.diffStats.removed)}</span> ·
-                Status changed from <Badge variant={compareVersion.status}>{compareVersion.status}</Badge> to <Badge variant={selectedVersion.status}>{selectedVersion.status}</Badge>
+                Net difference:{" "}
+                <span className="text-success">
+                  +{selectedVersion.diffStats.added - compareVersion.diffStats.added}
+                </span>{" "}
+                <span className="text-destructive">
+                  -{Math.abs(selectedVersion.diffStats.removed - compareVersion.diffStats.removed)}
+                </span>{" "}
+                · Status changed from{" "}
+                <Badge variant={compareVersion.status}>{compareVersion.status}</Badge> to{" "}
+                <Badge variant={selectedVersion.status}>{selectedVersion.status}</Badge>
               </p>
-              
+
               <div className="mt-4 p-4 rounded-lg bg-info/10 border border-info/20">
                 <div className="flex items-center gap-2 mb-2 text-info">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span className="text-xs font-semibold uppercase tracking-wider">Semantic Summary</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider">
+                    Semantic Summary
+                  </span>
                 </div>
                 <p className="text-sm italic">"{selectedVersion.summary}"</p>
               </div>
@@ -230,7 +295,16 @@ function VersionsPage() {
                 <div className="mt-4 p-4 rounded-lg bg-muted/50 border border-border overflow-x-auto">
                   <div className="text-xs font-mono whitespace-pre leading-relaxed">
                     {diffResult.textDiff.split("\n").map((line: string, i: number) => (
-                      <div key={i} className={line.startsWith("+") ? "text-success bg-success/5" : line.startsWith("-") ? "text-destructive bg-destructive/5" : ""}>
+                      <div
+                        key={i}
+                        className={
+                          line.startsWith("+")
+                            ? "text-success bg-success/5"
+                            : line.startsWith("-")
+                              ? "text-destructive bg-destructive/5"
+                              : ""
+                        }
+                      >
                         {line}
                       </div>
                     ))}
@@ -242,21 +316,45 @@ function VersionsPage() {
         </div>
       </div>
 
-      {toast && <div className="fixed bottom-6 right-6 px-4 py-3 rounded-lg bg-foreground text-background shadow-elegant text-sm">{toast}</div>}
+      {toast && (
+        <div className="fixed bottom-6 right-6 px-4 py-3 rounded-lg bg-foreground text-background shadow-elegant text-sm">
+          {toast}
+        </div>
+      )}
     </DashboardLayout>
   );
 }
 
-function Stat({ icon: Icon, color, label, value }: { icon: any; color: string; label: string; value: number }) {
+function Stat({
+  icon: Icon,
+  color,
+  label,
+  value,
+}: {
+  icon: any;
+  color: string;
+  label: string;
+  value: number;
+}) {
   return (
     <div className="rounded-lg border border-border p-3">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground"><Icon className={`w-3.5 h-3.5 ${color}`} /> {label}</div>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon className={`w-3.5 h-3.5 ${color}`} /> {label}
+      </div>
       <div className="mt-1 text-xl font-semibold">{value}</div>
     </div>
   );
 }
 
-function HighlightBox({ tone, title, items }: { tone: "success" | "destructive" | "warning"; title: string; items: string[] }) {
+function HighlightBox({
+  tone,
+  title,
+  items,
+}: {
+  tone: "success" | "destructive" | "warning";
+  title: string;
+  items: string[];
+}) {
   const map = {
     success: "border-success/30 bg-success/5",
     destructive: "border-destructive/30 bg-destructive/5",
@@ -269,7 +367,11 @@ function HighlightBox({ tone, title, items }: { tone: "success" | "destructive" 
         <div className="text-xs text-muted-foreground">�</div>
       ) : (
         <ul className="space-y-1 text-xs font-mono">
-          {items.map((item) => <li key={item} className="truncate">{item}</li>)}
+          {items.map((item) => (
+            <li key={item} className="truncate">
+              {item}
+            </li>
+          ))}
         </ul>
       )}
     </div>

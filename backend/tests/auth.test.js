@@ -45,7 +45,10 @@ export async function testRegistration() {
       await registerUser({ ...testUser, email: "invalid-email" });
       assert.fail("Should reject invalid email");
     } catch (error) {
-      assert(error.message.includes("Invalid email") || error.message.includes("invalid"), "Should reject invalid email");
+      assert(
+        error.message.includes("Invalid email") || error.message.includes("invalid"),
+        "Should reject invalid email",
+      );
       console.log("  ✓ Invalid email rejected");
     }
 
@@ -87,7 +90,10 @@ export async function testLogin() {
       });
       assert.fail("Should reject invalid password");
     } catch (error) {
-      assert(error.message.includes("credentials") || error.message.includes("Invalid"), "Should reject invalid password");
+      assert(
+        error.message.includes("credentials") || error.message.includes("Invalid"),
+        "Should reject invalid password",
+      );
       console.log("  ✓ Invalid password rejected");
     }
 
@@ -99,7 +105,10 @@ export async function testLogin() {
       });
       assert.fail("Should reject non-existent user");
     } catch (error) {
-      assert(error.message.includes("credentials") || error.message.includes("Invalid"), "Should reject non-existent user");
+      assert(
+        error.message.includes("credentials") || error.message.includes("Invalid"),
+        "Should reject non-existent user",
+      );
       console.log("  ✓ Non-existent user rejected");
     }
   } catch (error) {

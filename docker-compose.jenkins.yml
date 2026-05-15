@@ -56,5 +56,5 @@ volumes:
 
 networks:
   version-vault-network:
-    # We don't mark as external here because it's defined in the base 
+    # We don't mark as external here because it's defined in the base
     # docker-compose.yml and they are typically run together.

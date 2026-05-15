@@ -6,7 +6,7 @@ import { asyncHandler } from "../utils/async-handler.js";
 export const getSharedFileInfoController = asyncHandler(async (req, res) => {
   const { token } = req.params;
   const file = await FileRecord.findOne({ shareToken: token, isPublic: true, isDeleted: false });
-  
+
   if (!file) {
     throw new AppError(404, "Shared file not found or access revoked");
   }
@@ -24,14 +24,14 @@ export const getSharedFileInfoController = asyncHandler(async (req, res) => {
       updatedAt: file.updatedAt,
       versionNumber: currentVersion.versionNumber,
       summary: currentVersion.summary,
-    }
+    },
   });
 });
 
 export const downloadSharedFileController = asyncHandler(async (req, res) => {
   const { token } = req.params;
   const file = await FileRecord.findOne({ shareToken: token, isPublic: true, isDeleted: false });
-  
+
   if (!file) {
     throw new AppError(404, "Shared file not found or access revoked");
   }

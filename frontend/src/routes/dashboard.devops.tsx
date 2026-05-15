@@ -33,9 +33,9 @@ export const Route = createFileRoute("/dashboard/devops")({
 
 // ─── Docker service definitions (static — reflects docker-compose.yml) ───────
 const DOCKER_SERVICES = [
-  { name: "version-vault-backend",  image: "backend:latest",      port: "4000", role: "Express API" },
-  { name: "version-vault-frontend", image: "frontend:latest",     port: "3000", role: "React SPA" },
-  { name: "version-vault-mongodb",  image: "mongo:7.0-alpine",    port: "27017", role: "MongoDB" },
+  { name: "version-vault-backend", image: "backend:latest", port: "4000", role: "Express API" },
+  { name: "version-vault-frontend", image: "frontend:latest", port: "3000", role: "React SPA" },
+  { name: "version-vault-mongodb", image: "mongo:7.0-alpine", port: "27017", role: "MongoDB" },
 ];
 
 // ─── CI/CD stage definitions (mirrors Jenkinsfile stages) ────────────────────
@@ -53,11 +53,11 @@ const PIPELINE_STAGES = [
 ];
 
 function Devops() {
-  const [pipelines, setPipelines]   = useState<ApiPipelineLog[]>([]);
-  const [stats, setStats]           = useState<ApiPipelineStats | null>(null);
-  const [toast, setToast]           = useState<string | null>(null);
-  const [loading, setLoading]       = useState(true);
-  const [syncing, setSyncing]       = useState(false);
+  const [pipelines, setPipelines] = useState<ApiPipelineLog[]>([]);
+  const [stats, setStats] = useState<ApiPipelineStats | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [selectedRun, setSelectedRun] = useState<ApiPipelineLog | null>(null);
 
   function notify(message: string) {
@@ -81,13 +81,13 @@ function Devops() {
   }, []);
 
   const summary = useMemo(() => {
-    const success  = pipelines.filter((p) => p.status === "success").length;
-    const failed   = pipelines.filter((p) => p.status === "failed").length;
-    const running  = pipelines.filter((p) => p.status === "running").length;
-    const avgDurS  = pipelines.length
+    const success = pipelines.filter((p) => p.status === "success").length;
+    const failed = pipelines.filter((p) => p.status === "failed").length;
+    const running = pipelines.filter((p) => p.status === "running").length;
+    const avgDurS = pipelines.length
       ? Math.round(pipelines.reduce((a, p) => a + p.durationMs, 0) / pipelines.length / 1000)
       : 0;
-    const rate     = pipelines.length ? Math.round((success / pipelines.length) * 100) : 0;
+    const rate = pipelines.length ? Math.round((success / pipelines.length) * 100) : 0;
 
     return [
       {
@@ -131,7 +131,7 @@ function Devops() {
       notify(
         response.sync.skipped
           ? "Jenkins not configured — showing stored logs"
-          : `Synced ${response.sync.synced} pipeline run${response.sync.synced !== 1 ? "s" : ""}`
+          : `Synced ${response.sync.synced} pipeline run${response.sync.synced !== 1 ? "s" : ""}`,
       );
     } catch (err) {
       notify(err instanceof Error ? err.message : "Sync failed");
@@ -144,7 +144,7 @@ function Devops() {
   const logLines = useMemo(() => {
     const runs = selectedRun ? [selectedRun] : pipelines.slice(0, 10);
     return runs.map((p) => {
-      const ts  = p.startedAt ? new Date(p.startedAt).toISOString() : "pending";
+      const ts = p.startedAt ? new Date(p.startedAt).toISOString() : "pending";
       const dur = p.durationMs ? `${Math.round(p.durationMs / 1000)}s` : "—";
       const icon = p.status === "success" ? "✓" : p.status === "failed" ? "✗" : "~";
       return `[${ts}] ${icon} ${p.pipeline} #${p.buildNumber}  status=${p.status}  duration=${dur}  branch=${p.branch || "main"}  commit=${p.commit?.substring(0, 8) || "n/a"}  author=${p.author || "Jenkins"}`;
@@ -181,7 +181,10 @@ function Devops() {
         {summary.map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.label} className="rounded-xl border border-border bg-card p-5 shadow-card">
+            <div
+              key={item.label}
+              className="rounded-xl border border-border bg-card p-5 shadow-card"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{item.label}</span>
                 <Icon className={`w-4 h-4 ${item.color}`} />
@@ -195,13 +198,14 @@ function Devops() {
 
       {/* ── Pipeline list + Deployment timeline ────────────────────────────── */}
       <div className="grid lg:grid-cols-3 gap-6 mt-6">
-
         {/* Pipeline runs */}
         <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-card">
           <div className="p-5 border-b border-border flex items-center justify-between">
             <div>
               <h2 className="font-semibold">Jenkins pipeline runs</h2>
-              <p className="text-xs text-muted-foreground">Most recent builds — click a row to inspect</p>
+              <p className="text-xs text-muted-foreground">
+                Most recent builds — click a row to inspect
+              </p>
             </div>
             <Badge variant="info">live</Badge>
           </div>
@@ -212,7 +216,8 @@ function Devops() {
             </div>
           ) : pipelines.length === 0 ? (
             <div className="p-6 text-sm text-muted-foreground">
-              No pipeline runs yet. Click <strong>Sync Jenkins</strong> to pull from Jenkins, or push a build via the webhook.
+              No pipeline runs yet. Click <strong>Sync Jenkins</strong> to pull from Jenkins, or
+              push a build via the webhook.
             </div>
           ) : (
             <ul className="divide-y divide-border">
@@ -228,18 +233,23 @@ function Devops() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium truncate">{p.pipeline}</span>
-                      <span className="text-xs text-muted-foreground font-mono shrink-0">#{p.buildNumber}</span>
+                      <span className="text-xs text-muted-foreground font-mono shrink-0">
+                        #{p.buildNumber}
+                      </span>
                       <Badge variant={pipelineStatusVariant(p.status)}>{p.status}</Badge>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
                       <span className="flex items-center gap-1">
-                        <GitBranch className="w-3 h-3" />{p.branch || "main"}
+                        <GitBranch className="w-3 h-3" />
+                        {p.branch || "main"}
                       </span>
                       <span className="flex items-center gap-1 font-mono">
-                        <GitCommit className="w-3 h-3" />{p.commit?.substring(0, 8) || "n/a"}
+                        <GitCommit className="w-3 h-3" />
+                        {p.commit?.substring(0, 8) || "n/a"}
                       </span>
                       <span className="flex items-center gap-1">
-                        <User className="w-3 h-3" />{p.author || "Jenkins"}
+                        <User className="w-3 h-3" />
+                        {p.author || "Jenkins"}
                       </span>
                     </div>
                   </div>
@@ -275,20 +285,22 @@ function Devops() {
                       p.status === "success"
                         ? "bg-success"
                         : p.status === "failed"
-                        ? "bg-destructive"
-                        : p.status === "running"
-                        ? "bg-info animate-pulse"
-                        : "bg-muted-foreground"
+                          ? "bg-destructive"
+                          : p.status === "running"
+                            ? "bg-info animate-pulse"
+                            : "bg-muted-foreground"
                     }`}
                   />
                   <div className="text-sm font-medium">
-                    {p.pipeline} <span className="text-muted-foreground font-mono">#{p.buildNumber}</span>
+                    {p.pipeline}{" "}
+                    <span className="text-muted-foreground font-mono">#{p.buildNumber}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {p.startedAt ? new Date(p.startedAt).toLocaleString() : "pending"}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {p.branch || "main"} · {p.durationMs ? `${Math.round(p.durationMs / 1000)}s` : "—"}
+                    {p.branch || "main"} ·{" "}
+                    {p.durationMs ? `${Math.round(p.durationMs / 1000)}s` : "—"}
                   </div>
                 </li>
               ))}
@@ -329,7 +341,8 @@ function Devops() {
             <Container className="w-4 h-4" /> Docker Services
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Defined in docker-compose.yml · run <code className="font-mono">docker compose up --build -d</code>
+            Defined in docker-compose.yml · run{" "}
+            <code className="font-mono">docker compose up --build -d</code>
           </p>
         </div>
         <div className="divide-y divide-border">
@@ -338,7 +351,9 @@ function Devops() {
               <div className="w-2 h-2 rounded-full bg-success shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm font-mono">{svc.name}</div>
-                <div className="text-xs text-muted-foreground">{svc.role} · {svc.image}</div>
+                <div className="text-xs text-muted-foreground">
+                  {svc.role} · {svc.image}
+                </div>
               </div>
               <div className="text-xs text-muted-foreground font-mono shrink-0">:{svc.port}</div>
             </div>
@@ -346,7 +361,9 @@ function Devops() {
         </div>
         <div className="p-4 border-t border-border bg-muted/30 rounded-b-xl">
           <p className="text-xs text-muted-foreground">
-            Health checks: backend <code className="font-mono">GET /health</code> · frontend <code className="font-mono">GET /</code> · mongodb <code className="font-mono">mongosh ping</code>
+            Health checks: backend <code className="font-mono">GET /health</code> · frontend{" "}
+            <code className="font-mono">GET /</code> · mongodb{" "}
+            <code className="font-mono">mongosh ping</code>
           </p>
         </div>
       </div>
@@ -361,12 +378,16 @@ function Devops() {
           </div>
           <div className="grid sm:grid-cols-3 lg:grid-cols-6 gap-4 p-5">
             {[
-              { label: "Total",    value: stats.total,                       color: "" },
-              { label: "Success",  value: stats.success,                     color: "text-success" },
-              { label: "Failed",   value: stats.failed,                      color: "text-destructive" },
-              { label: "Unstable", value: stats.unstable,                    color: "text-warning" },
-              { label: "Aborted",  value: stats.aborted,                     color: "text-muted-foreground" },
-              { label: "Rate",     value: `${stats.successRate}%`,           color: Number(stats.successRate) >= 80 ? "text-success" : "text-warning" },
+              { label: "Total", value: stats.total, color: "" },
+              { label: "Success", value: stats.success, color: "text-success" },
+              { label: "Failed", value: stats.failed, color: "text-destructive" },
+              { label: "Unstable", value: stats.unstable, color: "text-warning" },
+              { label: "Aborted", value: stats.aborted, color: "text-muted-foreground" },
+              {
+                label: "Rate",
+                value: `${stats.successRate}%`,
+                color: Number(stats.successRate) >= 80 ? "text-success" : "text-warning",
+              },
             ].map((s) => (
               <div key={s.label} className="text-center">
                 <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
@@ -416,11 +437,28 @@ function Devops() {
             <AlertTriangle className="w-4 h-4 text-warning" /> Getting started with CI/CD
           </h2>
           <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-            <li>Set <code className="font-mono text-foreground">JENKINS_BASE_URL</code>, <code className="font-mono text-foreground">JENKINS_USER</code>, and <code className="font-mono text-foreground">JENKINS_TOKEN</code> in <code className="font-mono text-foreground">backend/.env</code></li>
-            <li>Set <code className="font-mono text-foreground">JENKINS_JOB_NAME</code> to match your Jenkins job (default: <code className="font-mono text-foreground">VersionIQ</code>)</li>
-            <li>Click <strong>Sync Jenkins</strong> to pull existing build history</li>
-            <li>Or configure the Jenkins job to POST to <code className="font-mono text-foreground">POST /pipelines/webhook</code> after each build</li>
-            <li>Run <code className="font-mono text-foreground">docker compose up --build -d</code> to start the full stack in Docker</li>
+            <li>
+              Set <code className="font-mono text-foreground">JENKINS_BASE_URL</code>,{" "}
+              <code className="font-mono text-foreground">JENKINS_USER</code>, and{" "}
+              <code className="font-mono text-foreground">JENKINS_TOKEN</code> in{" "}
+              <code className="font-mono text-foreground">backend/.env</code>
+            </li>
+            <li>
+              Set <code className="font-mono text-foreground">JENKINS_JOB_NAME</code> to match your
+              Jenkins job (default: <code className="font-mono text-foreground">VersionIQ</code>)
+            </li>
+            <li>
+              Click <strong>Sync Jenkins</strong> to pull existing build history
+            </li>
+            <li>
+              Or configure the Jenkins job to POST to{" "}
+              <code className="font-mono text-foreground">POST /pipelines/webhook</code> after each
+              build
+            </li>
+            <li>
+              Run <code className="font-mono text-foreground">docker compose up --build -d</code> to
+              start the full stack in Docker
+            </li>
           </ol>
         </div>
       )}
@@ -437,18 +475,25 @@ function Devops() {
 
 function PipelineStatusIcon({ status }: { status: string }) {
   if (status === "success") return <CheckCircle2 className="w-5 h-5 text-success shrink-0" />;
-  if (status === "failed")  return <XCircle      className="w-5 h-5 text-destructive shrink-0" />;
-  if (status === "running") return <Loader2      className="w-5 h-5 text-info animate-spin shrink-0" />;
+  if (status === "failed") return <XCircle className="w-5 h-5 text-destructive shrink-0" />;
+  if (status === "running") return <Loader2 className="w-5 h-5 text-info animate-spin shrink-0" />;
   return <Clock className="w-5 h-5 text-muted-foreground shrink-0" />;
 }
 
 /** Map pipeline status to a Badge variant that exists in the Badge component. */
-function pipelineStatusVariant(status: string): "success" | "failed" | "running" | "pending" | "neutral" {
+function pipelineStatusVariant(
+  status: string,
+): "success" | "failed" | "running" | "pending" | "neutral" {
   switch (status) {
-    case "success":  return "success";
-    case "failed":   return "failed";
-    case "running":  return "running";
-    case "queued":   return "pending";
-    default:         return "neutral";
+    case "success":
+      return "success";
+    case "failed":
+      return "failed";
+    case "running":
+      return "running";
+    case "queued":
+      return "pending";
+    default:
+      return "neutral";
   }
 }

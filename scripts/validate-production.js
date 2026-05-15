@@ -123,97 +123,53 @@ async function runValidation() {
   await checkFileContent(
     "./backend/src/middleware/error-handler.js",
     "ApiError",
-    "Global error handling with ApiError class"
+    "Global error handling with ApiError class",
   );
   await checkFileContent(
     "./backend/src/middleware/rate-limit.js",
     "RateLimiter",
-    "Rate limiting middleware"
+    "Rate limiting middleware",
   );
   await checkFileContent(
     "./backend/src/middleware/validation.js",
     "validateRequest",
-    "Request validation middleware"
+    "Request validation middleware",
   );
   await checkFileContent(
     "./backend/src/services/recommendation.service.js",
     "calculateVersionStability",
-    "Smart rollback recommendation"
+    "Smart rollback recommendation",
   );
   await checkFileContent(
     "./frontend/src/lib/api-enhanced.ts",
     "retryWithBackoff",
-    "API retry logic"
+    "API retry logic",
   );
-  await checkFileContent(
-    "./frontend/src/hooks/use-api.tsx",
-    "useAsync",
-    "Frontend async hooks"
-  );
+  await checkFileContent("./frontend/src/hooks/use-api.tsx", "useAsync", "Frontend async hooks");
 
   // Environment Configuration
   console.log("\n🔐 Security Configuration\n");
-  await checkFileContent(
-    "./backend/.env.example",
-    "JWT_SECRET",
-    "JWT secret configuration"
-  );
-  await checkFileContent(
-    "./backend/.env.example",
-    "MONGODB_URI",
-    "MongoDB connection URI"
-  );
-  await checkFileContent(
-    "./backend/src/config/env.js",
-    "validateEnv()",
-    "Environment validation"
-  );
+  await checkFileContent("./backend/.env.example", "JWT_SECRET", "JWT secret configuration");
+  await checkFileContent("./backend/.env.example", "MONGODB_URI", "MongoDB connection URI");
+  await checkFileContent("./backend/src/config/env.js", "validateEnv()", "Environment validation");
 
   // Docker Configuration
   console.log("\n🐳 Docker Configuration\n");
-  await checkFileContent(
-    "./docker-compose.yml",
-    "healthcheck",
-    "Health checks configured"
-  );
-  await checkFileContent(
-    "./docker-compose.yml",
-    "networks:",
-    "Docker networks configured"
-  );
-  await checkFileContent(
-    "./Dockerfile.frontend",
-    "dumb-init",
-    "Frontend signal handling"
-  );
-  await checkFileContent(
-    "./backend/Dockerfile",
-    "dumb-init",
-    "Backend signal handling"
-  );
+  await checkFileContent("./docker-compose.yml", "healthcheck", "Health checks configured");
+  await checkFileContent("./docker-compose.yml", "networks:", "Docker networks configured");
+  await checkFileContent("./Dockerfile.frontend", "dumb-init", "Frontend signal handling");
+  await checkFileContent("./backend/Dockerfile", "dumb-init", "Backend signal handling");
 
   // CI/CD Pipeline
   console.log("\n🚀 CI/CD Pipeline\n");
   await checkFileContent(
     "./Jenkinsfile",
     "stage('Install dependencies')",
-    "Dependency installation stage"
+    "Dependency installation stage",
   );
-  await checkFileContent(
-    "./Jenkinsfile",
-    "stage('Build')",
-    "Build stage"
-  );
-  await checkFileContent(
-    "./Jenkinsfile",
-    "stage('Tests')",
-    "Testing stage"
-  );
-  await checkFileContent(
-    "./Jenkinsfile",
-    "stage('Docker')",
-    "Docker build stage"
-  );
+  await checkFileContent("./Jenkinsfile", "stage('Build')", "Build stage");
+  await checkFileContent("./Jenkinsfile", "stage('Tests')", "Testing stage");
+  await checkFileContent("./Jenkinsfile", "stage('Docker')", "Docker build stage");
 
   // Documentation
   console.log("\n📚 Documentation\n");

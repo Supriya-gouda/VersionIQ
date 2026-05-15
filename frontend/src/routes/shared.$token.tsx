@@ -41,8 +41,12 @@ function SharedFileView() {
             <Globe className="w-10 h-10" />
           </div>
           <h1 className="text-2xl font-bold">Access Denied</h1>
-          <p className="text-muted-foreground mt-2">{error || "This link is no longer active or the file has been made private."}</p>
-          <a href="/" className="mt-8 inline-block text-primary font-medium hover:underline">Go back home</a>
+          <p className="text-muted-foreground mt-2">
+            {error || "This link is no longer active or the file has been made private."}
+          </p>
+          <a href="/" className="mt-8 inline-block text-primary font-medium hover:underline">
+            Go back home
+          </a>
         </div>
       </div>
     );
@@ -77,7 +81,9 @@ function SharedFileView() {
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-2">
                   <Clock className="w-3.5 h-3.5" /> Last Updated
                 </div>
-                <div className="text-lg font-medium">{new Date(data.updatedAt).toLocaleString()}</div>
+                <div className="text-lg font-medium">
+                  {new Date(data.updatedAt).toLocaleString()}
+                </div>
               </div>
               <div className="space-y-1">
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-2">
@@ -95,7 +101,7 @@ function SharedFileView() {
             >
               <Download className="w-6 h-6" /> Download File
             </button>
-            
+
             <p className="text-center text-[10px] text-muted-foreground mt-6 uppercase tracking-[0.2em] font-medium opacity-50">
               Securely served by VersionIQ • End-to-end versioning
             </p>

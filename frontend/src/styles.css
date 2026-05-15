@@ -89,9 +89,10 @@
   --sidebar-border: oklch(0.25 0.04 270);
 
   --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
-  --gradient-hero: radial-gradient(at 20% 20%, oklch(0.7 0.2 285 / 0.25), transparent 50%),
-                   radial-gradient(at 80% 60%, oklch(0.65 0.16 235 / 0.2), transparent 55%),
-                   radial-gradient(at 50% 100%, oklch(0.65 0.18 155 / 0.15), transparent 60%);
+  --gradient-hero:
+    radial-gradient(at 20% 20%, oklch(0.7 0.2 285 / 0.25), transparent 50%),
+    radial-gradient(at 80% 60%, oklch(0.65 0.16 235 / 0.2), transparent 55%),
+    radial-gradient(at 50% 100%, oklch(0.65 0.18 155 / 0.15), transparent 60%);
   --shadow-elegant: 0 10px 40px -12px oklch(0.55 0.22 270 / 0.25);
   --shadow-card: 0 1px 3px oklch(0 0 0 / 0.04), 0 4px 12px oklch(0 0 0 / 0.04);
   --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -133,25 +134,39 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
 }
 
 @layer utilities {
-  .bg-gradient-primary { background-image: var(--gradient-primary); }
-  .bg-gradient-hero { background-image: var(--gradient-hero); }
-  .shadow-elegant { box-shadow: var(--shadow-elegant); }
-  .shadow-card { box-shadow: var(--shadow-card); }
-  .transition-smooth { transition: var(--transition-smooth); }
+  .bg-gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+  .bg-gradient-hero {
+    background-image: var(--gradient-hero);
+  }
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
   .text-gradient {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
@@ -166,14 +181,25 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
-.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 .animate-shimmer {
   background: linear-gradient(90deg, transparent, var(--muted), transparent);

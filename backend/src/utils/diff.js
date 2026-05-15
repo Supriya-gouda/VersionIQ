@@ -13,10 +13,10 @@ function lcs(arr1, arr2) {
   const MAX_LINES = 1000;
   const lines1 = arr1.slice(0, MAX_LINES);
   const lines2 = arr2.slice(0, MAX_LINES);
-  
+
   const m = lines1.length;
   const n = lines2.length;
-  
+
   if (m === 0 || n === 0) return 0;
 
   // Use a more memory-efficient 1D array approach for LCS length
@@ -94,7 +94,7 @@ export function generateTextDiff(previousContent = "", nextContent = "") {
   const nextSet = new Set(nextLines);
 
   const diffLines = [];
-  
+
   // Find added lines
   for (const line of nextLines) {
     if (!previousSet.has(line) && line.trim()) {

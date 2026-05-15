@@ -43,7 +43,7 @@ export async function connectDatabase(uri) {
 
     await connectWithMongoose(uri, options);
     console.log(
-      `Connected to MongoDB (${isAtlas ? "Atlas" : "Local"}) - ${uri.replace(/password:[^@]*@/, "password:****@")}`
+      `Connected to MongoDB (${isAtlas ? "Atlas" : "Local"}) - ${uri.replace(/password:[^@]*@/, "password:****@")}`,
     );
   } catch (error) {
     console.error(`Failed to connect to MongoDB: ${error.message}`);

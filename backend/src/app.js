@@ -5,11 +5,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import { env } from "./config/env.js";
-import {
-  errorHandler,
-  notFoundHandler,
-  asyncHandler,
-} from "./middleware/error-handler.js";
+import { errorHandler, notFoundHandler, asyncHandler } from "./middleware/error-handler.js";
 import { responseFormatter } from "./middleware/response-formatter.js";
 import { rateLimiters } from "./middleware/rate-limit.js";
 import { authRouter } from "./routes/auth.routes.js";
@@ -31,7 +27,7 @@ export function createApp() {
         return callback(new Error(`CORS policy: origin ${origin} not allowed`));
       },
       credentials: false,
-    })
+    }),
   );
 
   // Logging middleware
@@ -57,7 +53,7 @@ export function createApp() {
         uptime: process.uptime(),
         env: env.nodeEnv,
       },
-      "Healthy"
+      "Healthy",
     );
   });
 
@@ -68,8 +64,11 @@ export function createApp() {
   app.get(
     "/",
     asyncHandler((_req, res) => {
-      res.sendSuccess({ service: "Version Vault Pro API", status: "ok", uptime: process.uptime() }, "API root");
-    })
+      res.sendSuccess(
+        { service: "Version Vault Pro API", status: "ok", uptime: process.uptime() },
+        "API root",
+      );
+    }),
   );
 
   // API Routes

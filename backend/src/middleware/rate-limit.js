@@ -12,14 +12,17 @@ class RateLimiter {
 
   cleanup() {
     // Cleanup old entries every 5 minutes
-    setInterval(() => {
-      const now = Date.now();
-      for (const [key, data] of this.requests.entries()) {
-        if (now - data.lastCleanup > 5 * 60 * 1000) {
-          this.requests.delete(key);
+    setInterval(
+      () => {
+        const now = Date.now();
+        for (const [key, data] of this.requests.entries()) {
+          if (now - data.lastCleanup > 5 * 60 * 1000) {
+            this.requests.delete(key);
+          }
         }
-      }
-    }, 5 * 60 * 1000);
+      },
+      5 * 60 * 1000,
+    );
   }
 
   isRateLimited(identifier, windowMs, maxRequests) {
@@ -79,11 +82,7 @@ export function rateLimit({
       if (onLimit) {
         onLimit(req, res, key);
       }
-      throw new ApiError(
-        429,
-        "RATE_LIMIT_EXCEEDED",
-        "Too many requests. Please try again later."
-      );
+      throw new ApiError(429, "RATE_LIMIT_EXCEEDED", "Too many requests. Please try again later.");
     }
 
     next();

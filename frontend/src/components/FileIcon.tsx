@@ -3,11 +3,11 @@ import { FileText, FileImage, FileCode2, FileType2, FileCheck2 } from "lucide-re
 export type FileType = "pdf" | "docx" | "txt" | "png" | "yaml";
 
 const map: Record<FileType, { icon: typeof FileText; color: string; bg: string }> = {
-  pdf:  { icon: FileText,  color: "text-destructive", bg: "bg-destructive/10" },
-  docx: { icon: FileType2, color: "text-info",        bg: "bg-info/10" },
-  txt:  { icon: FileCheck2, color: "text-muted-foreground", bg: "bg-muted" },
-  png:  { icon: FileImage, color: "text-success",     bg: "bg-success/10" },
-  yaml: { icon: FileCode2, color: "text-primary",     bg: "bg-primary/10" },
+  pdf: { icon: FileText, color: "text-destructive", bg: "bg-destructive/10" },
+  docx: { icon: FileType2, color: "text-info", bg: "bg-info/10" },
+  txt: { icon: FileCheck2, color: "text-muted-foreground", bg: "bg-muted" },
+  png: { icon: FileImage, color: "text-success", bg: "bg-success/10" },
+  yaml: { icon: FileCode2, color: "text-primary", bg: "bg-primary/10" },
 };
 
 export function FileIcon({ type, size = "md" }: { type: FileType; size?: "sm" | "md" | "lg" }) {

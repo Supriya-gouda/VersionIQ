@@ -82,7 +82,7 @@ export function requireRole(...roles) {
     if (!roles.includes(userRole)) {
       throw ApiError.forbidden(
         "INSUFFICIENT_PERMISSIONS",
-        `This action requires one of the following roles: ${roles.join(", ")}`
+        `This action requires one of the following roles: ${roles.join(", ")}`,
       );
     }
 

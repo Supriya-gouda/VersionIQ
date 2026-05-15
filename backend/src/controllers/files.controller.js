@@ -148,7 +148,11 @@ export const fileSummaryController = asyncHandler(async (req, res) => {
   let version;
 
   if (versionId) {
-    version = await Version.findOne({ _id: versionId, file: req.params.id, owner: req.user._id }).lean();
+    version = await Version.findOne({
+      _id: versionId,
+      file: req.params.id,
+      owner: req.user._id,
+    }).lean();
   } else {
     version = await getCurrentVersionForFile(req.params.id, req.user._id);
   }

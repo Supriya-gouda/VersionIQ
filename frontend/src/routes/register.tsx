@@ -5,7 +5,12 @@ import { Check } from "lucide-react";
 import { register, setAccessToken } from "@/lib/api";
 
 export const Route = createFileRoute("/register")({
-  head: () => ({ meta: [{ title: "Create account — VersaVault" }, { name: "description", content: "Create your free VersaVault workspace." }] }),
+  head: () => ({
+    meta: [
+      { title: "Create account — VersaVault" },
+      { name: "description", content: "Create your free VersaVault workspace." },
+    ],
+  }),
   component: Register,
 });
 
@@ -50,29 +55,66 @@ function Register() {
     <AuthShell
       title="Create your account"
       subtitle="Start versioning files with AI in minutes."
-      footer={<>Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link></>}
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/login" className="text-primary font-medium hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
     >
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Full name" placeholder="Aarav Sharma" value={name} onChange={setName} error={errors.name} />
-        <Field label="Work email" type="email" placeholder="you@company.com" value={email} onChange={setEmail} error={errors.email} />
-        <Field label="Password" type="password" placeholder="Min 8 characters" value={password} onChange={setPassword} error={errors.password} />
+        <Field
+          label="Full name"
+          placeholder="Aarav Sharma"
+          value={name}
+          onChange={setName}
+          error={errors.name}
+        />
+        <Field
+          label="Work email"
+          type="email"
+          placeholder="you@company.com"
+          value={email}
+          onChange={setEmail}
+          error={errors.email}
+        />
+        <Field
+          label="Password"
+          type="password"
+          placeholder="Min 8 characters"
+          value={password}
+          onChange={setPassword}
+          error={errors.password}
+        />
         {requestError ? <p className="text-sm text-destructive">{requestError}</p> : null}
         {password && (
           <div>
             <div className="flex gap-1">
-              {[0,1,2,3].map(i => (
-                <div key={i} className={`h-1 flex-1 rounded-full ${i < strength ? "bg-gradient-primary" : "bg-muted"}`} />
+              {[0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`h-1 flex-1 rounded-full ${i < strength ? "bg-gradient-primary" : "bg-muted"}`}
+                />
               ))}
             </div>
-            <div className="text-xs text-muted-foreground mt-1.5">Password strength: {strengthLabel}</div>
+            <div className="text-xs text-muted-foreground mt-1.5">
+              Password strength: {strengthLabel}
+            </div>
           </div>
         )}
         <ul className="text-xs text-muted-foreground space-y-1">
-          {["14-day free trial", "No credit card required", "Cancel anytime"].map(b => (
-            <li key={b} className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-success" /> {b}</li>
+          {["14-day free trial", "No credit card required", "Cancel anytime"].map((b) => (
+            <li key={b} className="flex items-center gap-2">
+              <Check className="w-3.5 h-3.5 text-success" /> {b}
+            </li>
           ))}
         </ul>
-        <button disabled={loading} className="w-full h-11 rounded-lg bg-gradient-primary text-primary-foreground font-medium shadow-elegant hover:opacity-90 transition-smooth disabled:opacity-60">
+        <button
+          disabled={loading}
+          className="w-full h-11 rounded-lg bg-gradient-primary text-primary-foreground font-medium shadow-elegant hover:opacity-90 transition-smooth disabled:opacity-60"
+        >
           {loading ? "Creating account..." : "Create account"}
         </button>
       </form>

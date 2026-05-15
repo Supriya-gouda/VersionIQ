@@ -16,7 +16,7 @@ export class ApiErrorResponse extends Error {
     public status: number,
     public code: string,
     message: string,
-    public details?: unknown
+    public details?: unknown,
   ) {
     super(message);
     this.name = "ApiErrorResponse";
@@ -45,7 +45,7 @@ export class ApiErrorResponse extends Error {
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = MAX_RETRIES,
-  initialDelay: number = RETRY_DELAY
+  initialDelay: number = RETRY_DELAY,
 ): Promise<T> {
   let lastError: Error | null = null;
 
@@ -78,17 +78,11 @@ async function retryWithBackoff<T>(
 /**
  * Request timeout handler
  */
-function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number = DEFAULT_TIMEOUT
-): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = DEFAULT_TIMEOUT): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
-      setTimeout(
-        () => reject(new Error("Request timeout")),
-        timeoutMs
-      )
+      setTimeout(() => reject(new Error("Request timeout")), timeoutMs),
     ),
   ]);
 }
@@ -104,7 +98,7 @@ export async function apiRequest<T>(
     isFormData?: boolean;
     retries?: number;
     timeout?: number;
-  } = {}
+  } = {},
 ): Promise<T> {
   const { isFormData = false, retries = MAX_RETRIES, timeout = DEFAULT_TIMEOUT } = options;
 
@@ -132,7 +126,7 @@ export async function apiRequest<T>(
         headers,
         body: finalBody,
       }),
-      timeout
+      timeout,
     );
 
     let data: unknown = {};
@@ -257,7 +251,7 @@ export function register(payload: { name: string; email: string; password: strin
   return apiRequest<{ token: string; user: { id: string; name: string; email: string } }>(
     "/auth/register",
     "POST",
-    payload
+    payload,
   );
 }
 
@@ -265,15 +259,12 @@ export function login(payload: { email: string; password: string }) {
   return apiRequest<{ token: string; user: { id: string; name: string; email: string } }>(
     "/auth/login",
     "POST",
-    payload
+    payload,
   );
 }
 
 export function me() {
-  return apiRequest<{ user: { id: string; name: string; email: string } }>(
-    "/auth/me",
-    "GET"
-  );
+  return apiRequest<{ user: { id: string; name: string; email: string } }>("/auth/me", "GET");
 }
 
 export function listFiles() {
@@ -283,27 +274,17 @@ export function listFiles() {
 }
 
 export function uploadFile(payload: FormData) {
-  return apiRequest<{ file: ApiFile; version: ApiVersion }>(
-    "/files/upload",
-    "POST",
-    payload,
-    {
-      isFormData: true,
-      retries: 1,
-      timeout: 60000, // 60 seconds for upload
-    }
-  );
+  return apiRequest<{ file: ApiFile; version: ApiVersion }>("/files/upload", "POST", payload, {
+    isFormData: true,
+    retries: 1,
+    timeout: 60000, // 60 seconds for upload
+  });
 }
 
 export function deleteFile(fileId: string) {
-  return apiRequest<{ message: string }>(
-    `/files/${fileId}`,
-    "DELETE",
-    undefined,
-    {
-      retries: 2,
-    }
-  );
+  return apiRequest<{ message: string }>(`/files/${fileId}`, "DELETE", undefined, {
+    retries: 2,
+  });
 }
 
 export function getFile(fileId: string) {
@@ -313,19 +294,14 @@ export function getFile(fileId: string) {
     undefined,
     {
       retries: 2,
-    }
+    },
   );
 }
 
 export function listVersions(fileId: string) {
-  return apiRequest<{ versions: ApiVersion[] }>(
-    `/files/${fileId}/versions`,
-    "GET",
-    undefined,
-    {
-      retries: 2,
-    }
-  );
+  return apiRequest<{ versions: ApiVersion[] }>(`/files/${fileId}/versions`, "GET", undefined, {
+    retries: 2,
+  });
 }
 
 export function restoreVersion(fileId: string, versionId: string) {
@@ -335,7 +311,7 @@ export function restoreVersion(fileId: string, versionId: string) {
     undefined,
     {
       retries: 2,
-    }
+    },
   );
 }
 
@@ -349,14 +325,9 @@ export function getSummary(fileId: string) {
       diffStats: { added: number; removed: number; modified: number };
       text: string;
     };
-  }>(
-    `/files/${fileId}/summary`,
-    "GET",
-    undefined,
-    {
-      retries: 2,
-    }
-  );
+  }>(`/files/${fileId}/summary`, "GET", undefined, {
+    retries: 2,
+  });
 }
 
 export function getRecommendation(fileId: string) {
@@ -366,34 +337,24 @@ export function getRecommendation(fileId: string) {
     undefined,
     {
       retries: 2,
-    }
+    },
   );
 }
 
 export function listPipelines() {
-  return apiRequest<{ pipelines: ApiPipelineLog[] }>(
-    "/pipelines/status",
-    "GET",
-    undefined,
-    {
-      retries: 2,
-    }
-  );
+  return apiRequest<{ pipelines: ApiPipelineLog[] }>("/pipelines/status", "GET", undefined, {
+    retries: 2,
+  });
 }
 
 export function syncPipelines() {
   return apiRequest<{
     sync: { synced: number; skipped: boolean };
     pipelines: ApiPipelineLog[];
-  }>(
-    "/pipelines/sync",
-    "POST",
-    undefined,
-    {
-      retries: 1,
-      timeout: 45000, // 45 seconds for sync
-    }
-  );
+  }>("/pipelines/sync", "POST", undefined, {
+    retries: 1,
+    timeout: 45000, // 45 seconds for sync
+  });
 }
 
 export function downloadFile(fileId: string) {
@@ -406,7 +367,7 @@ export function downloadFile(fileId: string) {
     fetch(url, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     }),
-    60000 // 60 seconds for download
+    60000, // 60 seconds for download
   )
     .then(async (response) => {
       if (!response.ok) {

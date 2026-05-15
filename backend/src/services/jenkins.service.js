@@ -45,13 +45,13 @@ function validateJenkinsConfig() {
   if (!env.jenkinsBaseUrl) {
     throw ApiError.badRequest(
       "JENKINS_NOT_CONFIGURED",
-      "Jenkins base URL not configured (JENKINS_BASE_URL)"
+      "Jenkins base URL not configured (JENKINS_BASE_URL)",
     );
   }
   if (!env.jenkinsJobName) {
     throw ApiError.badRequest(
       "JENKINS_JOB_NOT_CONFIGURED",
-      "Jenkins job name not configured (JENKINS_JOB_NAME)"
+      "Jenkins job name not configured (JENKINS_JOB_NAME)",
     );
   }
 }
@@ -88,7 +88,7 @@ async function fetchJenkinsBuilds(limit = 30) {
     console.error(`Failed to fetch Jenkins builds: ${error.message}`);
     throw ApiError.internal(
       "JENKINS_API_ERROR",
-      `Failed to fetch Jenkins builds: ${error.message}`
+      `Failed to fetch Jenkins builds: ${error.message}`,
     );
   }
 }
@@ -106,9 +106,7 @@ function extractBuildMetadata(build) {
 
   const startedAt = build.timestamp ? new Date(build.timestamp) : null;
   const finishedAt =
-    build.timestamp && build.duration
-      ? new Date(build.timestamp + build.duration)
-      : null;
+    build.timestamp && build.duration ? new Date(build.timestamp + build.duration) : null;
 
   return {
     commit: commit.substring(0, 40), // Limit to 40 chars
@@ -161,7 +159,7 @@ export async function syncJenkinsPipelineLogs() {
               syncedAt: new Date(),
             },
           },
-          { upsert: true }
+          { upsert: true },
         );
 
         synced++;
@@ -234,7 +232,9 @@ export async function getPipelineStats(days = 7) {
           ? ((logs.filter((l) => l.status === "success").length / logs.length) * 100).toFixed(2)
           : 0,
       averageDurationMs:
-        logs.length > 0 ? Math.round(logs.reduce((sum, l) => sum + (l.durationMs || 0), 0) / logs.length) : 0,
+        logs.length > 0
+          ? Math.round(logs.reduce((sum, l) => sum + (l.durationMs || 0), 0) / logs.length)
+          : 0,
     };
 
     return stats;

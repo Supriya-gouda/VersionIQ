@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { downloadSharedFileController, getSharedFileInfoController } from "../controllers/public.controller.js";
+import {
+  downloadSharedFileController,
+  getSharedFileInfoController,
+} from "../controllers/public.controller.js";
 
 export const publicRouter = Router();
 

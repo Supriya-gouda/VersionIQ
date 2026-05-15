@@ -17,7 +17,13 @@ async function readFileContentIfText(filePath, mimeType) {
 
   if (
     !mimeType.startsWith("text/") &&
-    !["application/json", "application/xml", "application/x-yaml", "application/javascript", "application/typescript"].includes(mimeType) &&
+    ![
+      "application/json",
+      "application/xml",
+      "application/x-yaml",
+      "application/javascript",
+      "application/typescript",
+    ].includes(mimeType) &&
     !filePath.match(/\.(txt|md|json|yaml|yml|js|ts|jsx|tsx|html|css|py|rb|go|java|c|cpp|h)$/i)
   ) {
     return null;
@@ -55,25 +61,39 @@ export async function generateDetailedSummary(diffStats, versionNumber) {
 /**
  * Generate summary using AI providers with fallback
  */
-export async function generateSummary({ diffStats, versionNumber, previousContent = "", currentContent = "" }) {
+export async function generateSummary({
+  diffStats,
+  versionNumber,
+  previousContent = "",
+  currentContent = "",
+}) {
   const localSummary = buildLocalSummary(diffStats, versionNumber);
   const detailed = buildDetailedSummary(diffStats, versionNumber);
 
   // 1. Try Gemini if configured
   if (env.geminiApiKey) {
     try {
-      const result = await generateGeminiSummary({ diffStats, versionNumber, previousContent, currentContent });
+      const result = await generateGeminiSummary({
+        diffStats,
+        versionNumber,
+        previousContent,
+        currentContent,
+      });
       const summary = typeof result === "string" ? result : result.summary;
-      
+
       // 1.1 Verification Step
-      const isGeneric = !summary || summary.length < 15 || 
-                        /the file was updated|updated version|generic changes|changes were made|this is version|no substantial changes/i.test(summary);
-      
+      const isGeneric =
+        !summary ||
+        summary.length < 15 ||
+        /the file was updated|updated version|generic changes|changes were made|this is version|no substantial changes/i.test(
+          summary,
+        );
+
       if (summary && !isGeneric) {
-        return { 
-          summary, 
-          source: "gemini", 
-          model: env.geminiModel, 
+        return {
+          summary,
+          source: "gemini",
+          model: env.geminiModel,
           detailed,
           aiDetails: {
             topicSummary: result.topicSummary || "",
@@ -81,7 +101,7 @@ export async function generateSummary({ diffStats, versionNumber, previousConten
             addedLines: result.added || [],
             removedLines: result.removed || [],
             modifiedLines: result.modified || [],
-          }
+          },
         };
       }
       console.warn("Gemini produced a generic or empty summary, trying fallback...");
@@ -93,7 +113,12 @@ export async function generateSummary({ diffStats, versionNumber, previousConten
   // 2. Try OpenAI if configured
   if (env.openAiApiKey) {
     try {
-      const summary = await generateOpenAiSummary({ diffStats, versionNumber, previousContent, currentContent });
+      const summary = await generateOpenAiSummary({
+        diffStats,
+        versionNumber,
+        previousContent,
+        currentContent,
+      });
       if (summary) {
         return { summary, source: "openai", model: env.openAiModel, detailed };
       }
@@ -113,11 +138,17 @@ export async function generateSummary({ diffStats, versionNumber, previousConten
 /**
  * Internal: Generate summary using OpenAI
  */
-async function generateOpenAiSummary({ diffStats, versionNumber, previousContent, currentContent }) {
+async function generateOpenAiSummary({
+  diffStats,
+  versionNumber,
+  previousContent,
+  currentContent,
+}) {
   const messages = [
     {
       role: "system",
-      content: "You are a high-level technical analyst. Summarize file changes in 1-2 friendly, readable sentences. Focus on what changed and why, avoiding technical jargon and raw code. Do not use diff symbols like + or -.",
+      content:
+        "You are a high-level technical analyst. Summarize file changes in 1-2 friendly, readable sentences. Focus on what changed and why, avoiding technical jargon and raw code. Do not use diff symbols like + or -.",
     },
     {
       role: "user",
@@ -139,7 +170,7 @@ async function generateOpenAiSummary({ diffStats, versionNumber, previousContent
         "Content-Type": "application/json",
       },
       timeout: 8000,
-    }
+    },
   );
 
   return response.data?.choices?.[0]?.message?.content?.trim();
@@ -148,7 +179,12 @@ async function generateOpenAiSummary({ diffStats, versionNumber, previousContent
 /**
  * Internal: Generate summary using Gemini
  */
-async function generateGeminiSummary({ diffStats, versionNumber, previousContent, currentContent }) {
+async function generateGeminiSummary({
+  diffStats,
+  versionNumber,
+  previousContent,
+  currentContent,
+}) {
   const prompt = buildPrompt({ diffStats, versionNumber, previousContent, currentContent });
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${env.geminiModel}:generateContent?key=${env.geminiApiKey}`;
 
@@ -191,7 +227,7 @@ ${prompt}`,
     {
       headers: { "Content-Type": "application/json" },
       timeout: 10000,
-    }
+    },
   );
 
   const raw = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
@@ -216,7 +252,7 @@ ${prompt}`,
  */
 function buildPrompt({ diffStats, versionNumber, previousContent, currentContent }) {
   const textDiff = generateTextDiff(previousContent, currentContent);
-  
+
   let text = `FILE VERSION COMPARISON: v${versionNumber - 1} -> v${versionNumber}\n\n`;
   text += `STATISTICS:\n`;
   text += `- Added: ${diffStats.added} lines\n`;

@@ -39,7 +39,7 @@ export const env = {
 
 // Parse client origins into an array for CORS checks
 env.clientOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:3000")
-  .split(',')
+  .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
 
@@ -55,24 +55,28 @@ export function validateEnv() {
 
   if (missing.length > 0) {
     throw new Error(
-      `Missing required environment variables:\n${missing.map((m) => `  - ${m}`).join("\n")}`
+      `Missing required environment variables:\n${missing.map((m) => `  - ${m}`).join("\n")}`,
     );
   }
 
   // Validate MongoDB URI format
   if (!env.mongodbUri.startsWith("mongodb://") && !env.mongodbUri.startsWith("mongodb+srv://")) {
     throw new Error(
-      "MONGODB_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)"
+      "MONGODB_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)",
     );
   }
 
   // Warn about insecure configurations in production
   if (env.nodeEnv === "production") {
     if (env.jwtSecret.length < 32) {
-      console.warn("⚠️ WARNING: JWT_SECRET is less than 32 characters (recommended for production)");
+      console.warn(
+        "⚠️ WARNING: JWT_SECRET is less than 32 characters (recommended for production)",
+      );
     }
     if (env.clientOrigin === "http://localhost:3000") {
-      console.warn("⚠️ WARNING: CLIENT_ORIGIN is localhost (should be production domain in production)");
+      console.warn(
+        "⚠️ WARNING: CLIENT_ORIGIN is localhost (should be production domain in production)",
+      );
     }
   }
 }

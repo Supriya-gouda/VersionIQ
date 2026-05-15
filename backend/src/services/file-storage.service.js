@@ -82,8 +82,8 @@ export class FileStorageService {
             savedAt: new Date().toISOString(),
           },
           null,
-          2
-        )
+          2,
+        ),
       );
 
       return filePath;
@@ -182,9 +182,7 @@ export class FileStorageService {
       const files = await fs.readdir(versionDir);
 
       // Filter for .bin files and extract version IDs
-      const versions = files
-        .filter((f) => f.endsWith(".bin"))
-        .map((f) => f.replace(".bin", ""));
+      const versions = files.filter((f) => f.endsWith(".bin")).map((f) => f.replace(".bin", ""));
 
       return versions;
     } catch (error) {

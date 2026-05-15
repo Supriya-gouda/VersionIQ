@@ -85,7 +85,7 @@ export async function updateAvatar(userId, file) {
 
   const avatarUrl = `${env.apiUrl}/uploads/${userId}/avatars/${fileName}`;
   const user = await User.findByIdAndUpdate(userId, { $set: { avatar: avatarUrl } }, { new: true });
-  
+
   if (!user) throw new AppError(404, "User not found");
   return sanitizeUser(user);
 }
