@@ -100,7 +100,7 @@ host-agent             → Jenkins runs directly on the host'''
           steps {
             sh '''
               echo "Installing frontend dependencies..."
-              npm ci --no-audit --no-fund
+              npm ci --include=dev --no-audit --no-fund
               echo "✓ Frontend dependencies installed"
             '''
           }
@@ -111,7 +111,7 @@ host-agent             → Jenkins runs directly on the host'''
             dir('backend') {
               sh '''
                 echo "Installing backend dependencies..."
-                npm ci --no-audit --no-fund
+                npm ci --include=dev --no-audit --no-fund
                 echo "✓ Backend dependencies installed"
               '''
             }
