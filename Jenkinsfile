@@ -11,10 +11,44 @@ pipeline {
     COMPOSE_DOCKER_CLI_BUILD = "1"
     DOCKER_BUILDKIT         = "1"
     NODE_ENV                = "production"
-    // Resolved at runtime so the variable is never empty
-    BUILD_TIMESTAMP         = """${sh(script: 'date -u +"%Y-%m-%dT%H:%M:%SZ"', returnStdout: true).trim()}"""
-    BACKEND_URL             = "http://localhost:4000"
-    FRONTEND_URL            = "http://localhost:3000"
+
+    // Resolved at runtime — never empty
+    BUILD_TIMESTAMP = """${sh(script: 'date -u +"%Y-%m-%dT%H:%M:%SZ"', returnStdout: true).trim()}"""
+
+    // ── Networking ────────────────────────────────────────────────────────
+    //
+    // IMPORTANT: how Jenkins reaches the app containers depends on WHERE
+    // Jenkins itself is running.
+    //
+    // Case A — Jenkins runs directly on the Docker HOST (bare-metal or VM,
+    //           not inside a container).  The compose ports are published to
+    //           the host, so localhost works:
+    //
+    //   BACKEND_URL  = "http://localhost:4000"
+    //   FRONTEND_URL = "http://localhost:3000"
+    //
+    // Case B — Jenkins runs INSIDE a Docker container on the same host.
+    //           "localhost" inside the Jenkins container is the Jenkins
+    //           container itself — the app containers are NOT reachable that
+    //           way.  Use host.docker.internal (Docker Desktop / Docker 20.10+)
+    //           or the host's gateway IP instead:
+    //
+    //   BACKEND_URL  = "http://host.docker.internal:4000"
+    //   FRONTEND_URL = "http://host.docker.internal:3000"
+    //
+    // Case C — Jenkins and the app stack share the SAME Docker Compose
+    //           network (jenkins service added to docker-compose.yml).
+    //           Use the compose service names directly:
+    //
+    //   BACKEND_URL  = "http://backend:4000"
+    //   FRONTEND_URL = "http://frontend:3000"
+    //
+    // The default below is Case A (Jenkins on host).
+    // Override via Jenkins → Manage Jenkins → System → Global properties
+    // or set JENKINS_CASE=B / JENKINS_CASE=C in the job environment.
+    // ─────────────────────────────────────────────────────────────────────
+    BACKEND_URL  = "${env.BACKEND_URL  ?: 'http://localhost:4000'}"
+    FRONTEND_URL = "${env.FRONTEND_URL ?: 'http://localhost:3000'}"
   }
 
   parameters {
@@ -25,11 +59,19 @@ pipeline {
     )
     booleanParam(name: 'SKIP_TESTS',  defaultValue: false, description: 'Skip test suite')
     booleanParam(name: 'SKIP_DOCKER', defaultValue: false, description: 'Skip Docker build & deploy')
+    choice(
+      name: 'JENKINS_NETWORK_MODE',
+      choices: ['host-agent', 'docker-container', 'shared-compose-network'],
+      description: '''Where is Jenkins running?
+  host-agent            → Jenkins on the Docker host; use localhost URLs
+  docker-container      → Jenkins in a container; use host.docker.internal
+  shared-compose-network → Jenkins in the same compose network; use service names'''
+    )
   }
 
   stages {
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Checkout') {
       steps {
         checkout scm
@@ -42,13 +84,47 @@ pipeline {
           echo "Commit    : ${GIT_COMMIT}"
           echo "Timestamp : ${BUILD_TIMESTAMP}"
           echo "Env       : ${ENVIRONMENT}"
+          echo "Network   : ${JENKINS_NETWORK_MODE}"
+          echo "Backend   : ${BACKEND_URL}"
+          echo "Frontend  : ${FRONTEND_URL}"
           echo "================================================"
           git log --oneline -3
         '''
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
+    // Resolve the correct health-check URLs based on the network mode
+    // parameter.  This stage sets RESOLVED_BACKEND_URL and
+    // RESOLVED_FRONTEND_URL as environment variables for downstream stages.
+    // ─────────────────────────────────────────────────────────────────────
+    stage('Resolve Network URLs') {
+      steps {
+        script {
+          switch (params.JENKINS_NETWORK_MODE) {
+            case 'docker-container':
+              // Jenkins is inside a container; reach the host via
+              // host.docker.internal (Docker Desktop) or the gateway IP.
+              env.RESOLVED_BACKEND_URL  = 'http://host.docker.internal:4000'
+              env.RESOLVED_FRONTEND_URL = 'http://host.docker.internal:3000'
+              break
+            case 'shared-compose-network':
+              // Jenkins is in the same compose network; use service names.
+              env.RESOLVED_BACKEND_URL  = 'http://backend:4000'
+              env.RESOLVED_FRONTEND_URL = 'http://frontend:3000'
+              break
+            default:
+              // host-agent: Jenkins runs on the Docker host directly.
+              env.RESOLVED_BACKEND_URL  = env.BACKEND_URL  ?: 'http://localhost:4000'
+              env.RESOLVED_FRONTEND_URL = env.FRONTEND_URL ?: 'http://localhost:3000'
+          }
+          echo "Resolved backend  URL: ${env.RESOLVED_BACKEND_URL}"
+          echo "Resolved frontend URL: ${env.RESOLVED_FRONTEND_URL}"
+        }
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     stage('Install Dependencies') {
       parallel {
         stage('Frontend: npm ci') {
@@ -74,7 +150,7 @@ pipeline {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Lint & Syntax Check') {
       parallel {
         stage('Frontend: ESLint') {
@@ -107,7 +183,7 @@ pipeline {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Tests') {
       when {
         expression { !params.SKIP_TESTS }
@@ -128,7 +204,7 @@ pipeline {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Build') {
       parallel {
         stage('Frontend: vite build') {
@@ -156,19 +232,20 @@ pipeline {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Security Audit') {
       steps {
-        sh '''
-          echo "Running npm security audit..."
-          npm audit --production --audit-level=high || echo "⚠ Audit warnings (non-blocking)"
-          cd backend && npm audit --production --audit-level=high || echo "⚠ Backend audit warnings (non-blocking)"
-          echo "✓ Security audit completed"
-        '''
+        // Use dir() instead of cd so each audit runs in the correct directory
+        sh 'echo "Running frontend security audit..."'
+        sh 'npm audit --production --audit-level=high || echo "⚠ Frontend audit warnings (non-blocking)"'
+        dir('backend') {
+          sh 'npm audit --production --audit-level=high || echo "⚠ Backend audit warnings (non-blocking)"'
+        }
+        sh 'echo "✓ Security audit completed"'
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Docker: Build Images') {
       when {
         expression { !params.SKIP_DOCKER }
@@ -184,7 +261,7 @@ pipeline {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Docker: Deploy Stack') {
       when {
         expression { !params.SKIP_DOCKER }
@@ -206,7 +283,7 @@ pipeline {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Health Checks') {
       when {
         expression { !params.SKIP_DOCKER }
@@ -215,41 +292,68 @@ pipeline {
         sh '''
           echo "================================================"
           echo "  Running Health Checks"
+          echo "  Backend  : ${RESOLVED_BACKEND_URL}"
+          echo "  Frontend : ${RESOLVED_FRONTEND_URL}"
           echo "================================================"
 
-          # Backend /health
+          # ── Backend /health ──────────────────────────────────────────────
           echo "Checking backend /health ..."
-          for i in 1 2 3 4 5; do
-            if curl -sf "${BACKEND_URL}/health" > /dev/null; then
-              echo "✓ Backend /health OK"
+          BACKEND_OK=0
+          for i in 1 2 3 4 5 6; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              --connect-timeout 5 --max-time 10 \
+              "${RESOLVED_BACKEND_URL}/health" || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✓ Backend /health OK (HTTP $HTTP_CODE)"
+              BACKEND_OK=1
               break
             fi
-            echo "  Attempt $i failed, retrying in 10s..."
+            echo "  Attempt $i: HTTP $HTTP_CODE — retrying in 10s..."
             sleep 10
-            if [ $i -eq 5 ]; then
-              echo "❌ Backend health check failed after 5 attempts"
-              docker compose logs backend --tail=50
-              exit 1
-            fi
           done
 
-          # Backend /api/health (alias)
+          if [ "$BACKEND_OK" = "0" ]; then
+            echo "❌ Backend health check failed after 6 attempts"
+            echo "=== Backend container logs ==="
+            docker compose logs backend --tail=80 || true
+            echo ""
+            echo "HINT: If Jenkins is running inside a Docker container, set"
+            echo "  JENKINS_NETWORK_MODE=docker-container  (uses host.docker.internal)"
+            echo "  or add Jenkins to the version-vault-network in docker-compose.yml"
+            exit 1
+          fi
+
+          # ── Backend /api/health (alias) ──────────────────────────────────
           echo "Checking backend /api/health ..."
-          curl -sf "${BACKEND_URL}/api/health" > /dev/null && echo "✓ Backend /api/health OK" || echo "⚠ /api/health not available"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --connect-timeout 5 --max-time 10 \
+            "${RESOLVED_BACKEND_URL}/api/health" || echo "000")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✓ Backend /api/health OK"
+          else
+            echo "⚠ /api/health returned HTTP $HTTP_CODE (non-critical)"
+          fi
 
-          # Frontend
+          # ── Frontend ─────────────────────────────────────────────────────
           echo "Checking frontend ..."
-          for i in 1 2 3; do
-            if curl -sf "${FRONTEND_URL}/" > /dev/null; then
-              echo "✓ Frontend OK"
+          FRONTEND_OK=0
+          for i in 1 2 3 4; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              --connect-timeout 5 --max-time 10 \
+              "${RESOLVED_FRONTEND_URL}/" || echo "000")
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "304" ]; then
+              echo "✓ Frontend OK (HTTP $HTTP_CODE)"
+              FRONTEND_OK=1
               break
             fi
-            echo "  Attempt $i failed, retrying in 10s..."
+            echo "  Attempt $i: HTTP $HTTP_CODE — retrying in 10s..."
             sleep 10
-            if [ $i -eq 3 ]; then
-              echo "⚠ Frontend not responding (non-critical)"
-            fi
           done
+
+          if [ "$FRONTEND_OK" = "0" ]; then
+            echo "⚠ Frontend not responding after 4 attempts (non-critical)"
+            docker compose logs frontend --tail=40 || true
+          fi
 
           echo "================================================"
           echo "  Health Checks Complete"
@@ -268,7 +372,7 @@ pipeline {
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     stage('Record Pipeline Status') {
       steps {
         sh '''
@@ -276,26 +380,20 @@ pipeline {
           echo "  Recording pipeline result to VersionIQ"
           echo "================================================"
 
-          # Push build result to the VersionIQ pipeline webhook endpoint.
-          # This stores the run in MongoDB so the DevOps dashboard shows it
-          # even when Jenkins is offline.
-          PAYLOAD=$(cat <<ENDJSON
-{
-  "buildNumber": ${BUILD_NUMBER},
+          PAYLOAD=$(printf '{
+  "buildNumber": %s,
   "pipeline": "VersionIQ",
-  "branch": "${GIT_BRANCH}",
-  "commit": "${GIT_COMMIT}",
-  "author": "${GIT_AUTHOR_NAME:-Jenkins}",
+  "branch": "%s",
+  "commit": "%s",
+  "author": "%s",
   "status": "success",
   "durationMs": 0,
-  "startedAt": "${BUILD_TIMESTAMP}",
+  "startedAt": "%s",
   "source": "jenkins"
-}
-ENDJSON
-)
+}' "${BUILD_NUMBER}" "${GIT_BRANCH}" "${GIT_COMMIT}" \
+   "${GIT_AUTHOR_NAME:-Jenkins}" "${BUILD_TIMESTAMP}")
 
-          # Try to POST to the webhook; failure is non-fatal
-          curl -sf -X POST "${BACKEND_URL}/pipelines/webhook" \
+          curl -sf -X POST "${RESOLVED_BACKEND_URL}/pipelines/webhook" \
             -H "Content-Type: application/json" \
             -H "X-Jenkins-Token: ${JENKINS_WEBHOOK_SECRET:-}" \
             -d "$PAYLOAD" \
@@ -318,7 +416,7 @@ ENDJSON
 
   } // end stages
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────
   post {
     success {
       echo "✅ Pipeline #${BUILD_NUMBER} completed successfully"
@@ -329,22 +427,20 @@ ENDJSON
         echo "❌ Pipeline #${BUILD_NUMBER} FAILED"
         echo "Check console output: ${BUILD_URL}console"
 
-        # Attempt to record failure in VersionIQ
-        PAYLOAD=$(cat <<ENDJSON
-{
-  "buildNumber": ${BUILD_NUMBER},
+        PAYLOAD=$(printf '{
+  "buildNumber": %s,
   "pipeline": "VersionIQ",
-  "branch": "${GIT_BRANCH}",
-  "commit": "${GIT_COMMIT}",
-  "author": "${GIT_AUTHOR_NAME:-Jenkins}",
+  "branch": "%s",
+  "commit": "%s",
+  "author": "%s",
   "status": "failed",
   "durationMs": 0,
-  "startedAt": "${BUILD_TIMESTAMP}",
+  "startedAt": "%s",
   "source": "jenkins"
-}
-ENDJSON
-)
-        curl -sf -X POST "${BACKEND_URL}/pipelines/webhook" \
+}' "${BUILD_NUMBER}" "${GIT_BRANCH}" "${GIT_COMMIT}" \
+   "${GIT_AUTHOR_NAME:-Jenkins}" "${BUILD_TIMESTAMP}")
+
+        curl -sf -X POST "${RESOLVED_BACKEND_URL}/pipelines/webhook" \
           -H "Content-Type: application/json" \
           -H "X-Jenkins-Token: ${JENKINS_WEBHOOK_SECRET:-}" \
           -d "$PAYLOAD" || true
@@ -356,10 +452,7 @@ ENDJSON
     }
 
     always {
-      sh '''
-        echo "Cleaning workspace..."
-        docker compose down --remove-orphans 2>/dev/null || true
-      '''
+      sh 'docker compose down --remove-orphans 2>/dev/null || true'
       cleanWs()
     }
   }

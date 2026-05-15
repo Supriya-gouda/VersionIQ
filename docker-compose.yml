@@ -8,6 +8,13 @@ version: "3.9"
 #   backend  — Express API (Node 20, port 4000)
 #   frontend — React/Vite preview server (Node 20, port 3000)
 #
+# Port binding note:
+#   Ports are bound to 0.0.0.0 (all interfaces) so that:
+#     - The host machine can reach them on localhost
+#     - A Jenkins container can reach them via host.docker.internal
+#   If you want to restrict to loopback only (more secure, but breaks
+#   Jenkins-in-Docker health checks), change to "127.0.0.1:PORT:PORT".
+#
 # Usage:
 #   docker compose up --build -d          # start everything
 #   docker compose logs -f backend        # tail backend logs
@@ -26,6 +33,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
     ports:
+      # Bound to 127.0.0.1 — MongoDB should never be exposed beyond the host
       - "127.0.0.1:27017:27017"
     volumes:
       - mongo_data:/data/db
@@ -67,6 +75,8 @@ services:
       # Override MONGODB_URI so the backend connects to the compose service,
       # not to localhost (which would be the container itself).
       MONGODB_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-changeme}@mongodb:27017/version_vault?authSource=admin
+      # CLIENT_ORIGIN must include the frontend origin as seen by the browser.
+      # In Docker: http://localhost:3000 (browser → host → frontend container).
       CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:3000}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ENABLE_RATE_LIMIT: "true"
@@ -77,14 +87,15 @@ services:
       JENKINS_JOB_NAME: ${JENKINS_JOB_NAME:-VersionIQ}
       JENKINS_WEBHOOK_SECRET: ${JENKINS_WEBHOOK_SECRET:-}
     ports:
-      - "127.0.0.1:4000:4000"
+      # 0.0.0.0 so host AND Jenkins-in-Docker (via host.docker.internal) can reach it
+      - "0.0.0.0:4000:4000"
     volumes:
       - ./backend/uploads:/app/uploads
       - backend_logs:/app/logs
     networks:
       - version-vault-network
     healthcheck:
-      # /health is a lightweight endpoint that does not touch the database.
+      # Runs inside the backend container — localhost is correct here
       test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
       interval: 30s
       timeout: 10s
@@ -106,6 +117,10 @@ services:
       dockerfile: Dockerfile.frontend
       args:
         NODE_ENV: production
+        # VITE_API_BASE_URL is baked into the JS bundle at build time.
+        # It must be the URL the USER'S BROWSER will use to reach the backend —
+        # not the Docker-internal address.  Default: http://localhost:4000
+        # (correct when the user opens the app from the same machine).
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4000}
     container_name: version-vault-frontend
     restart: unless-stopped
@@ -116,12 +131,13 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
     ports:
-      - "127.0.0.1:3000:3000"
+      # 0.0.0.0 so host AND Jenkins-in-Docker (via host.docker.internal) can reach it
+      - "0.0.0.0:3000:3000"
     networks:
       - version-vault-network
     healthcheck:
-      # Vite preview serves the SPA; a 200 on / confirms it is up.
-      test: ["CMD", "curl", "-f", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:3000/"]
+      # Simple curl inside the container — localhost:3000 is the Vite preview server
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3
