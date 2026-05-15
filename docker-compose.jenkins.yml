@@ -1,53 +1,58 @@
+```yaml
 # ─────────────────────────────────────────────────────────────────────────────
 # Jenkins compose override — Case C: Jenkins on the same Docker network
-#
-# Use this when you want Jenkins to reach the app containers by service name
-# (http://backend:4000, http://frontend:3000) instead of via the host.
 #
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.jenkins.yml up -d
 #
-# Then in the Jenkinsfile set:
-#   JENKINS_NETWORK_MODE = shared-compose-network
-#
-# Jenkins data is persisted in the jenkins_home named volume.
-# Jenkins UI is available at http://localhost:8080.
+# Jenkins UI:
+#   http://localhost:8080
 # ─────────────────────────────────────────────────────────────────────────────
 
 version: "3.9"
 
 services:
   jenkins:
-    # Use the official Jenkins LTS image with Docker CLI and Node.js pre-installed.
-    # The custom image (Dockerfile.jenkins) adds:
-    #   - Docker CLI + docker compose plugin
-    #   - Node.js 20 + npm
-    #   - curl
     build:
       context: .
       dockerfile: Dockerfile.jenkins
+
     container_name: version-vault-jenkins
+
     restart: unless-stopped
-    user: root          # needed to access the Docker socket
+
+    user: root
+
     environment:
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
-      # Pre-set the network mode so the Jenkinsfile resolves correct URLs
       JENKINS_NETWORK_MODE: shared-compose-network
+
     ports:
-      - "0.0.0.0:8080:8080"
-      - "0.0.0.0:50000:50000"
+      - "8080:8080"
+      - "50000:50000"
+
     volumes:
-      # Persist Jenkins home (jobs, plugins, credentials)
+      # Persist Jenkins data
       - jenkins_home:/var/jenkins_home
-      # Mount Docker socket so Jenkins can run docker/docker compose commands
+
+      # Docker socket access
       - /var/run/docker.sock:/var/run/docker.sock
-      # Mount the project workspace so Jenkins can check out and build
+
+      # Mount project workspace
       - .:/workspace
+
+    working_dir: /workspace
+
     networks:
       - version-vault-network
+
     depends_on:
       - mongodb
 
 volumes:
   jenkins_home:
-    driver: local
+
+networks:
+  version-vault-network:
+    external: true
+```
