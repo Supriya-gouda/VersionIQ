@@ -3,6 +3,8 @@
  * Run with: npm test tests/auth.test.js
  */
 
+// Force refresh for Jenkins
+console.log("DEBUG: Running auth.test.js from backend/tests/");
 import assert from "assert";
 import { User } from "../src/models/user.model.js";
 import { registerUser, loginUser } from "../src/services/auth.service.js";

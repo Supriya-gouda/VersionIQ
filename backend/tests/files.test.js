@@ -3,6 +3,8 @@
  * Run with: npm test tests/files.test.js
  */
 
+// Force refresh for Jenkins
+console.log("DEBUG: Running files.test.js from backend/tests/");
 import assert from "assert";
 import { FileRecord } from "../src/models/file.model.js";
 import { Version } from "../src/models/version.model.js";
