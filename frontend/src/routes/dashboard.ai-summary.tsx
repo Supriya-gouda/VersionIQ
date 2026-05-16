@@ -215,7 +215,9 @@ function AISummary() {
           <div className="grid sm:grid-cols-3 gap-4 mt-6">
             <div className="group rounded-xl border p-4 border-success/30 bg-success/5 transition-all duration-300 hover:shadow-md hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-success">Added</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-success">
+                  Added
+                </div>
                 <Plus className="w-3.5 h-3.5 text-success/40" />
               </div>
               <div className="text-3xl font-display font-bold text-success mb-2">
@@ -228,7 +230,9 @@ function AISummary() {
 
             <div className="group rounded-xl border p-4 border-destructive/30 bg-destructive/5 transition-all duration-300 hover:shadow-md hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-destructive">Removed</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-destructive">
+                  Removed
+                </div>
                 <Minus className="w-3.5 h-3.5 text-destructive/40" />
               </div>
               <div className="text-3xl font-display font-bold text-destructive mb-2">
@@ -241,7 +245,9 @@ function AISummary() {
 
             <div className="group rounded-xl border p-4 border-warning/40 bg-warning/5 transition-all duration-300 hover:shadow-md hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-warning-foreground">Modified</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-warning-foreground">
+                  Modified
+                </div>
                 <Pencil className="w-3.5 h-3.5 text-warning/40" />
               </div>
               <div className="text-3xl font-display font-bold text-warning-foreground mb-2">

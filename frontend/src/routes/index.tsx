@@ -77,15 +77,15 @@ function Landing() {
       {/* Hero */}
       <section className="relative bg-[#020617] overflow-hidden">
         {/* Abstract Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-screen pointer-events-none" 
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-screen pointer-events-none"
           style={{ backgroundImage: "url('/images/tech_hero_background.png')" }}
         />
-        
+
         {/* Ambient Glows */}
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/30 rounded-full blur-[120px] -translate-y-1/2 opacity-50" />
         <div className="absolute top-1/2 right-1/4 w-[600px] h-[600px] bg-amber-500/20 rounded-full blur-[140px] opacity-30" />
-        
+
         {/* Subtle Grid Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
 
@@ -97,12 +97,12 @@ function Landing() {
               Rollback with confidence.
             </span>
           </h1>
-          
+
           <p className="mt-8 text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
             VersaVault gives your team Git-grade versioning for any file, AI summaries of every
             change, and a CI/CD dashboard that ties releases back to the artifacts they ship.
           </p>
-          
+
           <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/register"
@@ -135,8 +135,20 @@ function Landing() {
               </div>
               <div className="grid md:grid-cols-3 gap-6 p-8">
                 {[
-                  { icon: Upload, label: "Files", value: "248", sub: "+12 this week", color: "text-amber-400" },
-                  { icon: GitBranch, label: "Versions", value: "1,924", sub: "across all files", color: "text-orange-400" },
+                  {
+                    icon: Upload,
+                    label: "Files",
+                    value: "248",
+                    sub: "+12 this week",
+                    color: "text-amber-400",
+                  },
+                  {
+                    icon: GitBranch,
+                    label: "Versions",
+                    value: "1,924",
+                    sub: "across all files",
+                    color: "text-orange-400",
+                  },
                   {
                     icon: ShieldCheck,
                     label: "Stable releases",
@@ -147,10 +159,17 @@ function Landing() {
                 ].map((s, i) => {
                   const Icon = s.icon;
                   return (
-                    <div key={i} className="rounded-2xl border border-slate-800 p-6 bg-slate-900/20 hover:bg-slate-900/40 transition-colors">
+                    <div
+                      key={i}
+                      className="rounded-2xl border border-slate-800 p-6 bg-slate-900/20 hover:bg-slate-900/40 transition-colors"
+                    >
                       <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{s.label}</span>
-                        <div className={`w-8 h-8 rounded-lg bg-slate-800/50 grid place-items-center ${s.color}`}>
+                        <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                          {s.label}
+                        </span>
+                        <div
+                          className={`w-8 h-8 rounded-lg bg-slate-800/50 grid place-items-center ${s.color}`}
+                        >
                           <Icon className="w-4 h-4" />
                         </div>
                       </div>
@@ -171,10 +190,16 @@ function Landing() {
                     </span>
                   </div>
                   <p className="text-base text-slate-400 leading-relaxed">
-                    Scaled deployment from <span className="text-white font-semibold">3 to 8 replicas</span>, added{" "}
-                    <span className="text-amber-400 font-semibold text-sm px-1.5 py-0.5 bg-amber-500/10 rounded">2 new environment variables</span>,
-                    and optimized liveness probes. Smart rollback recommended to{" "}
-                    <span className="text-emerald-400 font-bold underline underline-offset-4 cursor-pointer">v1.4.1 (stable)</span>.
+                    Scaled deployment from{" "}
+                    <span className="text-white font-semibold">3 to 8 replicas</span>, added{" "}
+                    <span className="text-amber-400 font-semibold text-sm px-1.5 py-0.5 bg-amber-500/10 rounded">
+                      2 new environment variables
+                    </span>
+                    , and optimized liveness probes. Smart rollback recommended to{" "}
+                    <span className="text-emerald-400 font-bold underline underline-offset-4 cursor-pointer">
+                      v1.4.1 (stable)
+                    </span>
+                    .
                   </p>
                 </div>
               </div>

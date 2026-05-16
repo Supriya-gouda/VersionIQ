@@ -251,10 +251,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
             {userMenuOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setUserMenuOpen(false)}
-                />
+                <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                 <div className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-elegant z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-right overflow-hidden">
                   <div className="p-4 border-b border-border bg-muted/30">
                     <div className="font-semibold text-sm truncate">
@@ -289,9 +286,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             )}
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-8 max-w-[1400px] w-full mx-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-4 lg:p-8 max-w-[1400px] w-full mx-auto">{children}</main>
       </div>
     </div>
   );

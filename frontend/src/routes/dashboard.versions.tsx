@@ -434,9 +434,7 @@ function HighlightBox({
   };
   return (
     <div className={`rounded-lg border p-3 ${map[tone]}`}>
-      <div className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">
-        {title}
-      </div>
+      <div className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">{title}</div>
       <div className="text-2xl font-display font-bold">{value}</div>
     </div>
   );
