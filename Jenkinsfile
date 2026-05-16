@@ -76,20 +76,24 @@ host-agent             → Jenkins runs directly on the host'''
             case 'docker-container':
               env.RESOLVED_BACKEND_URL  = 'http://host.docker.internal:4000'
               env.RESOLVED_FRONTEND_URL = 'http://host.docker.internal:3000'
+              env.RESOLVED_MONGODB_URI  = 'mongodb://admin:changeme@host.docker.internal:27017/version_vault?authSource=admin'
               break
 
             case 'shared-compose-network':
               env.RESOLVED_BACKEND_URL  = 'http://backend:4000'
               env.RESOLVED_FRONTEND_URL = 'http://frontend:3000'
+              env.RESOLVED_MONGODB_URI  = 'mongodb://admin:changeme@mongodb:27017/version_vault?authSource=admin'
               break
 
             default:
               env.RESOLVED_BACKEND_URL  = 'http://localhost:4000'
               env.RESOLVED_FRONTEND_URL = 'http://localhost:3000'
+              env.RESOLVED_MONGODB_URI  = 'mongodb://admin:changeme@localhost:27017/version_vault?authSource=admin'
           }
 
-          echo "Resolved backend URL : ${env.RESOLVED_BACKEND_URL}"
-          echo "Resolved frontend URL: ${env.RESOLVED_FRONTEND_URL}"
+          echo "Resolved backend URL  : ${env.RESOLVED_BACKEND_URL}"
+          echo "Resolved frontend URL : ${env.RESOLVED_FRONTEND_URL}"
+          echo "Resolved MongoDB URI  : ${env.RESOLVED_MONGODB_URI.substring(0, 40)}..."
         }
       }
     }
@@ -156,6 +160,7 @@ host-agent             → Jenkins runs directly on the host'''
         dir('backend') {
           sh '''
             echo "Running backend test suite..."
+            export MONGODB_URI="${RESOLVED_MONGODB_URI}"
             npm test
             echo "✓ Backend tests passed"
           '''
