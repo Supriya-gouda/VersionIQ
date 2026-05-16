@@ -90,7 +90,7 @@ services:
       # 0.0.0.0 so host AND Jenkins-in-Docker (via host.docker.internal) can reach it
       - "0.0.0.0:4000:4000"
     volumes:
-      - ./backend/uploads:/app/uploads
+      - backend_uploads:/app/uploads
       - backend_logs:/app/logs
     networks:
       - version-vault-network
@@ -161,4 +161,6 @@ volumes:
   mongo_config:
     driver: local
   backend_logs:
+    driver: local
+  backend_uploads:
     driver: local
