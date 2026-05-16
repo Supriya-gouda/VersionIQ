@@ -27,7 +27,7 @@ export async function registerUser({ name, email, password }) {
 
   // Validation: Password strength (min 8 chars)
   if (!password || password.length < 8) {
-    throw new AppError(400, "Password must be at least 8 characters long");
+    throw new AppError(400, "password must be at least 8 characters long");
   }
 
   const existing = await User.findOne({ email: email.toLowerCase() });
