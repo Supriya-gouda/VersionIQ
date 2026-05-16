@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  properties([
+    githubProjectProperty(projectUrlStr: 'https://github.com/Supriya-gouda/VersionIQ/')
+  ])
+
   options {
     timeout(time: 1, unit: 'HOURS')
     buildDiscarder(logRotator(numToKeepStr: '30'))
