@@ -7,6 +7,10 @@ pipeline {
     disableConcurrentBuilds()
   }
 
+  triggers {
+    githubPush()
+  }
+
   environment {
     COMPOSE_DOCKER_CLI_BUILD = "1"
     DOCKER_BUILDKIT           = "1"
@@ -74,26 +78,32 @@ host-agent             → Jenkins runs directly on the host'''
         script {
           switch (params.JENKINS_NETWORK_MODE) {
             case 'docker-container':
+              // Use host.docker.internal to reach the backend running on your Windows host
               env.RESOLVED_BACKEND_URL  = 'http://host.docker.internal:4000'
               env.RESOLVED_FRONTEND_URL = 'http://host.docker.internal:3000'
               env.RESOLVED_MONGODB_URI  = 'mongodb://admin:changeme@host.docker.internal:27017/version_vault?authSource=admin'
               break
 
             case 'shared-compose-network':
+              // Use service names when everything is inside the same Docker network
               env.RESOLVED_BACKEND_URL  = 'http://backend:4000'
               env.RESOLVED_FRONTEND_URL = 'http://frontend:3000'
               env.RESOLVED_MONGODB_URI  = 'mongodb://admin:changeme@mongodb:27017/version_vault?authSource=admin'
               break
 
             default:
+              // Fallback for host-agent or local dev
               env.RESOLVED_BACKEND_URL  = 'http://localhost:4000'
               env.RESOLVED_FRONTEND_URL = 'http://localhost:3000'
               env.RESOLVED_MONGODB_URI  = 'mongodb://admin:changeme@localhost:27017/version_vault?authSource=admin'
           }
 
-          echo "Resolved backend URL  : ${env.RESOLVED_BACKEND_URL}"
-          echo "Resolved frontend URL : ${env.RESOLVED_FRONTEND_URL}"
-          echo "Resolved MongoDB URI  : ${env.RESOLVED_MONGODB_URI.substring(0, 40)}..."
+          echo "================================================"
+          echo "  Network Configuration"
+          echo "  Mode    : ${params.JENKINS_NETWORK_MODE}"
+          echo "  Backend : ${env.RESOLVED_BACKEND_URL}"
+          echo "  Frontend: ${env.RESOLVED_FRONTEND_URL}"
+          echo "================================================"
         }
       }
     }
