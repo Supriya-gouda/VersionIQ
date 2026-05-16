@@ -248,6 +248,11 @@ host-agent             → Jenkins runs directly on the host'''
           docker compose ${COMPOSE_FILES} ps
         '''
       }
+      post {
+        failure {
+          sh 'docker compose ${COMPOSE_FILES} logs --tail=100 || true'
+        }
+      }
     }
 
     stage('Health Checks') {

@@ -85,6 +85,7 @@ services:
       JENKINS_TOKEN: ${JENKINS_TOKEN:-}
       JENKINS_JOB_NAME: ${JENKINS_JOB_NAME:-VersionIQ}
       JENKINS_WEBHOOK_SECRET: ${JENKINS_WEBHOOK_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:-0f3b1a9c5d7e2f248b6a9e1f0c4d2b7f9a6c3e2b8d1f4a6c7b9e2d3f1a5b6c7}
     ports:
       # 0.0.0.0 so host AND Jenkins-in-Docker (via host.docker.internal) can reach it
       - "0.0.0.0:4000:4000"
@@ -99,7 +100,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 30s
     deploy:
       resources:
         limits:
