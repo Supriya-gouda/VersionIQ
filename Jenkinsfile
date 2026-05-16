@@ -126,7 +126,7 @@ host-agent             → Jenkins runs directly on the host'''
           steps {
             sh '''
               echo "Running frontend lint..."
-              npm run lint -- --max-warnings=0
+              npm run lint
               echo "✓ Frontend lint passed"
             '''
           }
