@@ -158,20 +158,43 @@ function Dashboard() {
             ))
           : stats.map((s) => {
               const Icon = s.icon;
+              const isStatus = s.label === "Latest pipeline";
+              
               return (
                 <div
                   key={s.label}
-                  className="rounded-xl border border-border bg-card p-5 shadow-card hover:shadow-elegant transition-smooth"
+                  className="group relative rounded-2xl border border-border bg-card p-6 shadow-card hover:shadow-elegant hover:-translate-y-1 transition-all duration-300 overflow-hidden"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{s.label}</span>
-                    <div className={`w-9 h-9 rounded-lg grid place-items-center ${s.tone}`}>
-                      <Icon className="w-4 h-4" />
+                  {/* Subtle Background Glow */}
+                  <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 ${s.tone.split(' ')[0]}`} />
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">{s.label}</span>
+                    <div className={`w-10 h-10 rounded-xl shadow-sm grid place-items-center transition-transform group-hover:scale-110 duration-300 ${s.tone}`}>
+                      <Icon className="w-5 h-5" />
                     </div>
                   </div>
-                  <div className="mt-3 text-3xl font-semibold tracking-tight">{s.value}</div>
-                  <div className="mt-1 text-xs text-success flex items-center gap-1">
-                    <ArrowUpRight className="w-3 h-3" /> {s.delta} this week
+
+                  <div className="flex items-baseline gap-2">
+                    {isStatus ? (
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold tracking-tighter shadow-sm border ${
+                        s.value === 'SUCCESS' ? 'bg-success/10 text-success border-success/20' : 
+                        s.value === 'FAILED' ? 'bg-destructive/10 text-destructive border-destructive/20' : 
+                        'bg-warning/10 text-warning border-warning/20'
+                      }`}>
+                        {s.value}
+                      </div>
+                    ) : (
+                      <div className="text-3xl font-display font-bold tracking-tight">{s.value}</div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
+                    <div className="text-[10px] font-bold text-success flex items-center gap-1.5 uppercase tracking-wider">
+                      <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                      {s.delta}
+                    </div>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-colors" />
                   </div>
                 </div>
               );

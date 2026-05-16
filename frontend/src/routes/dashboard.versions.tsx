@@ -162,7 +162,22 @@ function VersionsPage() {
                     <div className="text-xs text-muted-foreground mt-1">
                       {new Date(version.createdAt).toLocaleString()}
                     </div>
-                    <div className="text-sm mt-1.5">{version.summary}</div>
+                    <div className="text-sm mt-1.5 leading-relaxed">
+                      {(() => {
+                        const text = version.summary || "No summary";
+                        const parts = text.split(/(\*\*.*?\*\*)/g);
+                        return parts.map((part: string, i: number) => {
+                          if (part.startsWith("**") && part.endsWith("**")) {
+                            return (
+                              <span key={i} className="font-bold text-primary">
+                                {part.slice(2, -2)}
+                              </span>
+                            );
+                          }
+                          return <span key={i}>{part}</span>;
+                        });
+                      })()}
+                    </div>
                   </button>
                 </li>
               );
@@ -197,7 +212,22 @@ function VersionsPage() {
                     </Badge>
                   )}
                 </div>
-                <p className="mt-3 text-sm">{selectedVersion?.summary ?? "No version selected"}</p>
+                <div className="mt-3 text-sm leading-relaxed">
+                  {(() => {
+                    const text = selectedVersion?.summary ?? "No version selected";
+                    const parts = text.split(/(\*\*.*?\*\*)/g);
+                    return parts.map((part: string, i: number) => {
+                      if (part.startsWith("**") && part.endsWith("**")) {
+                        return (
+                          <span key={i} className="font-bold text-primary">
+                            {part.slice(2, -2)}
+                          </span>
+                        );
+                      }
+                      return <span key={i}>{part}</span>;
+                    });
+                  })()}
+                </div>
               </div>
               <div className="flex gap-2">
                 <button
@@ -249,13 +279,38 @@ function VersionsPage() {
                 </div>
               </div>
             </div>
-            <p className="text-sm leading-relaxed">
-              {selectedVersion?.summary ?? "No summary available"}
-            </p>
+            <div className="text-sm leading-relaxed">
+              {(() => {
+                const text = selectedVersion?.summary ?? "No summary available";
+                const parts = text.split(/(\*\*.*?\*\*)/g);
+                return parts.map((part: string, i: number) => {
+                  if (part.startsWith("**") && part.endsWith("**")) {
+                    return (
+                      <span key={i} className="font-bold text-primary">
+                        {part.slice(2, -2)}
+                      </span>
+                    );
+                  }
+                  return <span key={i}>{part}</span>;
+                });
+              })()}
+            </div>
             <div className="grid sm:grid-cols-3 gap-3 mt-5">
-              <HighlightBox tone="success" title="Added" items={[]} />
-              <HighlightBox tone="destructive" title="Removed" items={[]} />
-              <HighlightBox tone="warning" title="Modified" items={[]} />
+              <HighlightBox
+                tone="success"
+                title="Added"
+                value={selectedVersion?.diffStats.added ?? 0}
+              />
+              <HighlightBox
+                tone="destructive"
+                title="Removed"
+                value={selectedVersion?.diffStats.removed ?? 0}
+              />
+              <HighlightBox
+                tone="warning"
+                title="Modified"
+                value={selectedVersion?.diffStats.modified ?? 0}
+              />
             </div>
           </div>
 
@@ -288,7 +343,24 @@ function VersionsPage() {
                     Semantic Summary
                   </span>
                 </div>
-                <p className="text-sm italic">"{selectedVersion.summary}"</p>
+                <p className="text-sm italic">
+                  "
+                  {(() => {
+                    const text = selectedVersion.summary;
+                    const parts = text.split(/(\*\*.*?\*\*)/g);
+                    return parts.map((part: string, i: number) => {
+                      if (part.startsWith("**") && part.endsWith("**")) {
+                        return (
+                          <span key={i} className="font-bold text-primary">
+                            {part.slice(2, -2)}
+                          </span>
+                        );
+                      }
+                      return <span key={i}>{part}</span>;
+                    });
+                  })()}
+                  "
+                </p>
               </div>
 
               {diffResult?.textDiff && (
@@ -349,31 +421,23 @@ function Stat({
 function HighlightBox({
   tone,
   title,
-  items,
+  value,
 }: {
   tone: "success" | "destructive" | "warning";
   title: string;
-  items: string[];
+  value: number;
 }) {
   const map = {
-    success: "border-success/30 bg-success/5",
-    destructive: "border-destructive/30 bg-destructive/5",
-    warning: "border-warning/40 bg-warning/5",
+    success: "border-success/30 bg-success/5 text-success",
+    destructive: "border-destructive/30 bg-destructive/5 text-destructive",
+    warning: "border-warning/40 bg-warning/5 text-warning-foreground",
   };
   return (
     <div className={`rounded-lg border p-3 ${map[tone]}`}>
-      <div className="text-xs font-medium mb-2">{title}</div>
-      {items.length === 0 ? (
-        <div className="text-xs text-muted-foreground">�</div>
-      ) : (
-        <ul className="space-y-1 text-xs font-mono">
-          {items.map((item) => (
-            <li key={item} className="truncate">
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">
+        {title}
+      </div>
+      <div className="text-2xl font-display font-bold">{value}</div>
     </div>
   );
 }

@@ -75,84 +75,106 @@ function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="relative bg-gradient-hero overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 pt-20 pb-24 text-center relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border text-xs text-muted-foreground mb-6 shadow-card">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            New: AI-powered change summaries & smart rollback
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight max-w-4xl mx-auto leading-[1.05]">
+      <section className="relative bg-[#020617] overflow-hidden">
+        {/* Abstract Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-screen pointer-events-none" 
+          style={{ backgroundImage: "url('/images/tech_hero_background.png')" }}
+        />
+        
+        {/* Ambient Glows */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/30 rounded-full blur-[120px] -translate-y-1/2 opacity-50" />
+        <div className="absolute top-1/2 right-1/4 w-[600px] h-[600px] bg-amber-500/20 rounded-full blur-[140px] opacity-30" />
+        
+        {/* Subtle Grid Overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
+
+        <div className="max-w-7xl mx-auto px-6 pt-32 pb-40 text-center relative">
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight max-w-5xl mx-auto leading-[0.95] text-white">
             Version every file.
             <br />
-            <span className="text-gradient">Rollback with confidence.</span>
+            <span className="bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              Rollback with confidence.
+            </span>
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
+          
+          <p className="mt-8 text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
             VersaVault gives your team Git-grade versioning for any file, AI summaries of every
             change, and a CI/CD dashboard that ties releases back to the artifacts they ship.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
             <Link
               to="/register"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-primary text-primary-foreground shadow-elegant hover:opacity-90 transition-smooth font-medium"
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-primary text-primary-foreground shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 transition-all duration-300 font-bold text-lg"
             >
-              Start free <ArrowRight className="w-4 h-4" />
+              Start free today <ArrowRight className="w-5 h-5" />
             </Link>
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border bg-card hover:bg-muted transition-smooth font-medium"
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-xl border border-slate-700 bg-slate-900/50 text-white hover:bg-slate-800 backdrop-blur-sm transition-all duration-300 font-bold text-lg"
             >
               View live demo
             </Link>
           </div>
 
           {/* Hero mock */}
-          <div className="mt-16 mx-auto max-w-5xl">
-            <div className="rounded-2xl border border-border bg-card shadow-elegant overflow-hidden text-left">
-              <div className="h-9 px-4 flex items-center gap-1.5 bg-muted/60 border-b border-border">
-                <span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />
-                <span className="w-2.5 h-2.5 rounded-full bg-warning/70" />
-                <span className="w-2.5 h-2.5 rounded-full bg-success/70" />
-                <span className="ml-3 text-xs text-muted-foreground font-mono">
-                  versavault.app/dashboard
-                </span>
+          <div className="mt-24 mx-auto max-w-6xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl overflow-hidden text-left">
+              <div className="h-11 px-5 flex items-center gap-2 bg-slate-900/50 border-b border-slate-800">
+                <div className="flex gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-red-500/50" />
+                  <span className="w-3 h-3 rounded-full bg-amber-500/50" />
+                  <span className="w-3 h-3 rounded-full bg-emerald-500/50" />
+                </div>
+                <div className="ml-4 flex-1 flex justify-center">
+                  <span className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
+                    secure-vault.io/dashboard/ai-summary
+                  </span>
+                </div>
               </div>
-              <div className="grid md:grid-cols-3 gap-4 p-6">
+              <div className="grid md:grid-cols-3 gap-6 p-8">
                 {[
-                  { icon: Upload, label: "Files", value: "248", sub: "+12 this week" },
-                  { icon: GitBranch, label: "Versions", value: "1,924", sub: "across all files" },
+                  { icon: Upload, label: "Files", value: "248", sub: "+12 this week", color: "text-amber-400" },
+                  { icon: GitBranch, label: "Versions", value: "1,924", sub: "across all files", color: "text-orange-400" },
                   {
                     icon: ShieldCheck,
                     label: "Stable releases",
                     value: "98.4%",
                     sub: "last 30 days",
+                    color: "text-emerald-400",
                   },
                 ].map((s, i) => {
                   const Icon = s.icon;
                   return (
-                    <div key={i} className="rounded-xl border border-border p-4 bg-background">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">{s.label}</span>
-                        <Icon className="w-4 h-4 text-primary" />
+                    <div key={i} className="rounded-2xl border border-slate-800 p-6 bg-slate-900/20 hover:bg-slate-900/40 transition-colors">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-xs font-bold uppercase tracking-widest text-slate-500">{s.label}</span>
+                        <div className={`w-8 h-8 rounded-lg bg-slate-800/50 grid place-items-center ${s.color}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
                       </div>
-                      <div className="mt-2 text-2xl font-semibold">{s.value}</div>
-                      <div className="text-xs text-muted-foreground mt-1">{s.sub}</div>
+                      <div className="text-3xl font-bold text-white">{s.value}</div>
+                      <div className="text-xs text-slate-500 mt-2 font-medium">{s.sub}</div>
                     </div>
                   );
                 })}
               </div>
-              <div className="px-6 pb-6">
-                <div className="rounded-xl border border-border p-5 bg-gradient-to-br from-accent/40 to-transparent">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">
-                      AI summary · deployment-config.yaml v1.4.2
+              <div className="px-8 pb-8">
+                <div className="rounded-2xl border border-slate-800 p-6 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 grid place-items-center">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-300">
+                      AI Version Intelligence · deployment-config.yaml v1.4.2
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Scaled deployment from 3 to 8 replicas, added{" "}
-                    <span className="text-foreground font-medium">2 environment variables</span>,
-                    and reduced liveness probe interval. Rollback recommended to{" "}
-                    <span className="text-success font-medium">v1.4.1 (stable)</span>.
+                  <p className="text-base text-slate-400 leading-relaxed">
+                    Scaled deployment from <span className="text-white font-semibold">3 to 8 replicas</span>, added{" "}
+                    <span className="text-amber-400 font-semibold text-sm px-1.5 py-0.5 bg-amber-500/10 rounded">2 new environment variables</span>,
+                    and optimized liveness probes. Smart rollback recommended to{" "}
+                    <span className="text-emerald-400 font-bold underline underline-offset-4 cursor-pointer">v1.4.1 (stable)</span>.
                   </p>
                 </div>
               </div>

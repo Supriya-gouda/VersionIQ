@@ -173,12 +173,26 @@ function AISummary() {
                   </div>
                 )}
 
-                <p className="mt-4 text-base leading-relaxed font-medium">
-                  {summary.text || activeVersion?.summary || "No summary available"}
-                </p>
+                <div className="mt-4 text-base leading-relaxed font-medium">
+                  {(() => {
+                    const text = summary.text || activeVersion?.summary || "No summary available";
+                    // Simple Markdown parser for **bold** text
+                    const parts = text.split(/(\*\*.*?\*\*)/g);
+                    return parts.map((part: string, i: number) => {
+                      if (part.startsWith("**") && part.endsWith("**")) {
+                        return (
+                          <span key={i} className="font-bold text-primary px-0.5">
+                            {part.slice(2, -2)}
+                          </span>
+                        );
+                      }
+                      return <span key={i}>{part}</span>;
+                    });
+                  })()}
+                </div>
 
                 {summary.aiDetails?.extraNotes && (
-                  <p className="mt-2 text-sm text-muted-foreground border-l-2 border-border pl-3">
+                  <p className="mt-2 text-sm text-muted-foreground border-l-2 border-primary/30 pl-3 italic">
                     {summary.aiDetails.extraNotes}
                   </p>
                 )}
@@ -198,22 +212,45 @@ function AISummary() {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4">
-            <DetailBox
-              tone="success"
-              title="Significant Additions"
-              items={summary.aiDetails?.addedLines || []}
-            />
-            <DetailBox
-              tone="destructive"
-              title="Significant Removals"
-              items={summary.aiDetails?.removedLines || []}
-            />
-            <DetailBox
-              tone="warning"
-              title="Logical Modifications"
-              items={summary.aiDetails?.modifiedLines || []}
-            />
+          <div className="grid sm:grid-cols-3 gap-4 mt-6">
+            <div className="group rounded-xl border p-4 border-success/30 bg-success/5 transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-success">Added</div>
+                <Plus className="w-3.5 h-3.5 text-success/40" />
+              </div>
+              <div className="text-3xl font-display font-bold text-success mb-2">
+                +{activeVersion?.diffStats.added ?? 0}
+              </div>
+              <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed font-medium">
+                {summary.aiDetails?.addedLines?.[0] || "No significant additions detected."}
+              </div>
+            </div>
+
+            <div className="group rounded-xl border p-4 border-destructive/30 bg-destructive/5 transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-destructive">Removed</div>
+                <Minus className="w-3.5 h-3.5 text-destructive/40" />
+              </div>
+              <div className="text-3xl font-display font-bold text-destructive mb-2">
+                -{activeVersion?.diffStats.removed ?? 0}
+              </div>
+              <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed font-medium">
+                {summary.aiDetails?.removedLines?.[0] || "No significant removals detected."}
+              </div>
+            </div>
+
+            <div className="group rounded-xl border p-4 border-warning/40 bg-warning/5 transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-warning-foreground">Modified</div>
+                <Pencil className="w-3.5 h-3.5 text-warning/40" />
+              </div>
+              <div className="text-3xl font-display font-bold text-warning-foreground mb-2">
+                {activeVersion?.diffStats.modified ?? 0}
+              </div>
+              <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed font-medium">
+                {summary.aiDetails?.modifiedLines?.[0] || "No major modifications detected."}
+              </div>
+            </div>
           </div>
 
           <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
