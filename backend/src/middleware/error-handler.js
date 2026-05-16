@@ -15,6 +15,13 @@ export function errorHandler(err, req, res, next) {
     code = `HTTP_${statusCode}`;
   }
 
+  // Handle JWT specific errors
+  if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+    statusCode = 401;
+    code = "UNAUTHORIZED";
+    message = error.name === "TokenExpiredError" ? "Session expired" : "Invalid token";
+  }
+
   // Log error with context
   const errorLog = {
     timestamp: new Date().toISOString(),

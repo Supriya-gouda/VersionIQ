@@ -55,6 +55,7 @@ const PIPELINE_STAGES = [
 function Devops() {
   const [pipelines, setPipelines] = useState<ApiPipelineLog[]>([]);
   const [stats, setStats] = useState<ApiPipelineStats | null>(null);
+  const [lastSync, setLastSync] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -71,6 +72,7 @@ function Devops() {
       getPipelineStats(7).catch(() => null),
     ]);
     setPipelines(pipelineRes.pipelines);
+    setLastSync(pipelineRes.timestamp);
     if (statsRes) setStats(statsRes.stats);
   }
 
@@ -84,6 +86,8 @@ function Devops() {
     const success = pipelines.filter((p) => p.status === "success").length;
     const failed = pipelines.filter((p) => p.status === "failed").length;
     const running = pipelines.filter((p) => p.status === "running").length;
+    const lastSuccessful = pipelines.find((p) => p.status === "success");
+
     const avgDurS = pipelines.length
       ? Math.round(pipelines.reduce((a, p) => a + p.durationMs, 0) / pipelines.length / 1000)
       : 0;
@@ -91,18 +95,20 @@ function Devops() {
 
     return [
       {
+        label: "Last Successful Build",
+        value: lastSuccessful ? `#${lastSuccessful.buildNumber}` : "None",
+        sub: lastSuccessful
+          ? `${lastSuccessful.branch || "main"} · ${lastSuccessful.startedAt ? new Date(lastSuccessful.startedAt).toLocaleDateString() : ""}`
+          : "No successful builds recorded",
+        icon: CheckCircle2,
+        color: "text-success",
+      },
+      {
         label: "Total runs",
         value: String(pipelines.length),
         sub: `${success} success · ${failed} failed · ${running} running`,
         icon: Activity,
         color: "text-primary",
-      },
-      {
-        label: "Avg duration",
-        value: avgDurS >= 60 ? `${Math.floor(avgDurS / 60)}m ${avgDurS % 60}s` : `${avgDurS}s`,
-        sub: "across recent builds",
-        icon: Timer,
-        color: "text-info",
       },
       {
         label: "Success rate",
@@ -112,11 +118,11 @@ function Devops() {
         color: rate >= 80 ? "text-success" : rate >= 50 ? "text-warning" : "text-destructive",
       },
       {
-        label: "Docker services",
-        value: String(DOCKER_SERVICES.length),
-        sub: "backend · frontend · mongodb",
-        icon: Container,
-        color: "text-primary",
+        label: "Avg duration",
+        value: avgDurS >= 60 ? `${Math.floor(avgDurS / 60)}m ${avgDurS % 60}s` : `${avgDurS}s`,
+        sub: "across recent builds",
+        icon: Timer,
+        color: "text-info",
       },
     ];
   }, [pipelines, stats]);
@@ -126,6 +132,7 @@ function Devops() {
     try {
       const response = await syncPipelines();
       setPipelines(response.pipelines);
+      setLastSync(new Date().toISOString());
       const statsRes = await getPipelineStats(7).catch(() => null);
       if (statsRes) setStats(statsRes.stats);
       notify(
@@ -140,7 +147,6 @@ function Devops() {
     }
   }
 
-  // Build a terminal-style log from the selected run or all runs
   const logLines = useMemo(() => {
     const runs = selectedRun ? [selectedRun] : pipelines.slice(0, 10);
     return runs.map((p) => {
@@ -162,8 +168,13 @@ function Devops() {
             </span>
             DevOps &amp; CI/CD
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 flex items-center gap-2">
             Live view of every Jenkins pipeline run and Docker deployment.
+            {lastSync && (
+              <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded uppercase tracking-wider font-semibold opacity-70">
+                Updated {new Date(lastSync).toLocaleTimeString()}
+              </span>
+            )}
           </p>
         </div>
         <button
