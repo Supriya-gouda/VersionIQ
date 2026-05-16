@@ -85,34 +85,42 @@ export function calculateLineDiff(previousContent = "", nextContent = "") {
 /**
  * Generate a textual diff (unified-like format) for AI context
  */
+/**
+ * Generate a full textual diff for the entire file
+ */
 export function generateTextDiff(previousContent = "", nextContent = "") {
-  const previousLines = toLines(previousContent);
-  const nextLines = toLines(nextContent);
-  const MAX_DIFF_LINES = 100; // Limit diff size for AI prompt
-
-  const previousSet = new Set(previousLines);
-  const nextSet = new Set(nextLines);
-
-  const diffLines = [];
-
-  // Find added lines
-  for (const line of nextLines) {
-    if (!previousSet.has(line) && line.trim()) {
-      diffLines.push(`+ ${line}`);
-      if (diffLines.length >= MAX_DIFF_LINES / 2) break;
+  const s1 = toLines(previousContent);
+  const s2 = toLines(nextContent);
+  
+  const m = s1.length;
+  const n = s2.length;
+  
+  // Basic dynamic programming for LCS path
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (s1[i - 1] === s2[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
+      else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
     }
   }
 
-  // Find removed lines
-  for (const line of previousLines) {
-    if (!nextSet.has(line) && line.trim()) {
-      diffLines.push(`- ${line}`);
-      if (diffLines.length >= MAX_DIFF_LINES) break;
+  const result = [];
+  let i = m, j = n;
+  
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && s1[i - 1] === s2[j - 1]) {
+      result.push(`  ${s1[i - 1]}`);
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      result.push(`+ ${s2[j - 1]}`);
+      j--;
+    } else {
+      result.push(`- ${s1[i - 1]}`);
+      i--;
     }
   }
 
-  if (diffLines.length === 0) return "No text changes detected.";
-  return diffLines.join("\n");
+  return result.reverse().join("\n");
 }
 
 /**

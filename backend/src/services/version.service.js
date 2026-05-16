@@ -279,5 +279,7 @@ export async function getVersionDiff({ userId, fileId, v1Id, v2Id }) {
     v2: { id: v2._id, number: v2.versionNumber, summary: v2.summary },
     diffStats,
     textDiff,
+    v1Content: text1,
+    v2Content: text2,
   };
 }
