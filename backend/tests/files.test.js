@@ -4,9 +4,9 @@
  */
 
 import assert from "assert";
-import { FileRecord } from "../../models/file.model.js";
-import { Version } from "../../models/version.model.js";
-import { FileStorageService } from "../../services/file-storage.service.js";
+import { FileRecord } from "../src/models/file.model.js";
+import { Version } from "../src/models/version.model.js";
+import { FileStorageService } from "../src/services/file-storage.service.js";
 
 const fileStorage = new FileStorageService();
 

@@ -4,8 +4,8 @@
  */
 
 import assert from "assert";
-import { User } from "../../models/user.model.js";
-import { registerUser, loginUser } from "../../services/auth.service.js";
+import { User } from "../src/models/user.model.js";
+import { registerUser, loginUser } from "../src/services/auth.service.js";
 
 // Test data
 const testUser = {
