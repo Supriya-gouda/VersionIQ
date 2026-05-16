@@ -110,7 +110,7 @@ function Dashboard() {
       {
         label: "Latest pipeline",
         value: latestPipelineStatus.toUpperCase(),
-        delta: "Live",
+        delta: pipelines[0]?.commit ? `#${pipelines[0].commit.slice(0, 7)}` : "Live",
         icon: Hammer,
         tone: "text-warning bg-warning/15",
       },
