@@ -11,7 +11,7 @@ pipeline {
     COMPOSE_DOCKER_CLI_BUILD = "1"
     DOCKER_BUILDKIT           = "1"
     NODE_ENV                  = "production"
-    COMPOSE_FILES             = "-f docker-compose.yml -f docker-compose.jenkins.yml"
+    COMPOSE_FILES             = "-p version-vault-pro -f docker-compose.yml -f docker-compose.jenkins.yml"
   }
 
   parameters {
