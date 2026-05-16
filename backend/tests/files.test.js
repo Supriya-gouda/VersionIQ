@@ -14,7 +14,7 @@ import { FileStorageService } from "../src/services/file-storage.service.js";
 const fileStorage = new FileStorageService();
 
 // Test data
-const testUserId = new mongoose.Types.ObjectId();
+const testUserId = new mongoose.Types.ObjectId().toString();
 let testFileId = null;
 
 /**
@@ -32,7 +32,7 @@ export async function testFileOperations() {
       size: 1024,
       currentVersionNumber: 1,
     });
-    testFileId = fileRecord._id;
+    testFileId = fileRecord._id.toString();
     assert(testFileId, "File should be created");
     console.log("  ✓ File created successfully");
 
