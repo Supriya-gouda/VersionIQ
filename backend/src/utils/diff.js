@@ -91,10 +91,10 @@ export function calculateLineDiff(previousContent = "", nextContent = "") {
 export function generateTextDiff(previousContent = "", nextContent = "") {
   const s1 = toLines(previousContent);
   const s2 = toLines(nextContent);
-  
+
   const m = s1.length;
   const n = s2.length;
-  
+
   // Basic dynamic programming for LCS path
   const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
   for (let i = 1; i <= m; i++) {
@@ -105,12 +105,14 @@ export function generateTextDiff(previousContent = "", nextContent = "") {
   }
 
   const result = [];
-  let i = m, j = n;
-  
+  let i = m,
+    j = n;
+
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && s1[i - 1] === s2[j - 1]) {
       result.push(`  ${s1[i - 1]}`);
-      i--; j--;
+      i--;
+      j--;
     } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
       result.push(`+ ${s2[j - 1]}`);
       j--;

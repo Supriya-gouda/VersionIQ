@@ -228,18 +228,18 @@ function AISummary() {
                   {showDiff ? "Hide" : "Show"}
                 </Badge>
               </button>
-              
+
               {showDiff && diffResult?.v2Content && (
                 <div className="flex bg-muted rounded-lg p-0.5">
-                  <button 
-                    onClick={() => setDiffMode('compact')}
-                    className={`px-3 py-1 text-[10px] uppercase font-bold rounded-md transition-smooth ${diffMode === 'compact' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  <button
+                    onClick={() => setDiffMode("compact")}
+                    className={`px-3 py-1 text-[10px] uppercase font-bold rounded-md transition-smooth ${diffMode === "compact" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                   >
                     Changes Only
                   </button>
-                  <button 
-                    onClick={() => setDiffMode('full')}
-                    className={`px-3 py-1 text-[10px] uppercase font-bold rounded-md transition-smooth ${diffMode === 'full' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  <button
+                    onClick={() => setDiffMode("full")}
+                    className={`px-3 py-1 text-[10px] uppercase font-bold rounded-md transition-smooth ${diffMode === "full" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                   >
                     Full Document
                   </button>
@@ -250,58 +250,62 @@ function AISummary() {
             {showDiff && (
               <div className="p-0 animate-in fade-in slide-in-from-top-1 duration-200 overflow-hidden">
                 <div className="overflow-x-auto max-h-[600px]">
-                    <table className="w-full border-collapse font-mono text-[11px] leading-5">
-                      <tbody>
-                        {(() => {
-                          const allLines = diffResult?.textDiff?.split("\n") || [];
-                          
-                          // If compact mode, we only show lines with + or - and some context
-                          let linesToShow = allLines;
-                          if (diffMode === 'compact') {
-                            const indices = new Set<number>();
-                            allLines.forEach((line, idx) => {
-                              if (line.startsWith("+") || line.startsWith("-")) {
-                                for (let k = idx - 3; k <= idx + 3; k++) {
-                                  if (k >= 0 && k < allLines.length) indices.add(k);
-                                }
+                  <table className="w-full border-collapse font-mono text-[11px] leading-5">
+                    <tbody>
+                      {(() => {
+                        const allLines = diffResult?.textDiff?.split("\n") || [];
+
+                        // If compact mode, we only show lines with + or - and some context
+                        let linesToShow = allLines;
+                        if (diffMode === "compact") {
+                          const indices = new Set<number>();
+                          allLines.forEach((line, idx) => {
+                            if (line.startsWith("+") || line.startsWith("-")) {
+                              for (let k = idx - 3; k <= idx + 3; k++) {
+                                if (k >= 0 && k < allLines.length) indices.add(k);
                               }
-                            });
-                            linesToShow = allLines.filter((_, idx) => indices.has(idx));
+                            }
+                          });
+                          linesToShow = allLines.filter((_, idx) => indices.has(idx));
+                        }
+
+                        return linesToShow.map((line: string, i: number) => {
+                          const isAdded = line.startsWith("+");
+                          const isRemoved = line.startsWith("-");
+                          const isUnchanged = line.startsWith(" ");
+
+                          let rowClass = "hover:bg-muted/20 transition-colors";
+                          let gutterClass =
+                            "text-muted-foreground/30 text-right select-none border-r border-border/50 px-2 w-10";
+                          let contentClass = "px-4 whitespace-pre";
+
+                          if (isAdded) {
+                            rowClass = "bg-green-500/15 hover:bg-green-500/20";
+                            gutterClass =
+                              "bg-green-500/25 text-green-700 font-bold border-r border-green-500/30 w-10 text-center";
+                            contentClass += " text-green-900 font-semibold";
+                          } else if (isRemoved) {
+                            rowClass = "bg-red-500/15 hover:bg-red-500/20";
+                            gutterClass =
+                              "bg-red-500/25 text-red-700 font-bold border-r border-red-500/30 w-10 text-center";
+                            contentClass += " text-red-900 font-semibold";
                           }
 
-                          return linesToShow.map((line: string, i: number) => {
-                            const isAdded = line.startsWith("+");
-                            const isRemoved = line.startsWith("-");
-                            const isUnchanged = line.startsWith(" ");
-                            
-                            let rowClass = "hover:bg-muted/20 transition-colors";
-                            let gutterClass = "text-muted-foreground/30 text-right select-none border-r border-border/50 px-2 w-10";
-                            let contentClass = "px-4 whitespace-pre";
-                            
-                            if (isAdded) {
-                              rowClass = "bg-green-500/15 hover:bg-green-500/20";
-                              gutterClass = "bg-green-500/25 text-green-700 font-bold border-r border-green-500/30 w-10 text-center";
-                              contentClass += " text-green-900 font-semibold";
-                            } else if (isRemoved) {
-                              rowClass = "bg-red-500/15 hover:bg-red-500/20";
-                              gutterClass = "bg-red-500/25 text-red-700 font-bold border-r border-red-500/30 w-10 text-center";
-                              contentClass += " text-red-900 font-semibold";
-                            }
+                          const displayLine =
+                            isAdded || isRemoved ? line.substring(2) : line.substring(2);
 
-                            const displayLine = (isAdded || isRemoved) ? line.substring(2) : line.substring(2);
-
-                            return (
-                              <tr key={i} className={rowClass}>
-                                <td className={gutterClass}>
-                                  {isRemoved ? "-" : isAdded ? "+" : " "}
-                                </td>
-                                <td className={contentClass}>{displayLine}</td>
-                              </tr>
-                            );
-                          });
-                        })()}
-                      </tbody>
-                    </table>
+                          return (
+                            <tr key={i} className={rowClass}>
+                              <td className={gutterClass}>
+                                {isRemoved ? "-" : isAdded ? "+" : " "}
+                              </td>
+                              <td className={contentClass}>{displayLine}</td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
