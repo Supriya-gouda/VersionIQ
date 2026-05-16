@@ -6,6 +6,7 @@
 // Force refresh for Jenkins
 console.log("DEBUG: Running files.test.js from backend/tests/");
 import assert from "assert";
+import mongoose from "mongoose";
 import { FileRecord } from "../src/models/file.model.js";
 import { Version } from "../src/models/version.model.js";
 import { FileStorageService } from "../src/services/file-storage.service.js";
@@ -13,7 +14,7 @@ import { FileStorageService } from "../src/services/file-storage.service.js";
 const fileStorage = new FileStorageService();
 
 // Test data
-const testUserId = "test_user_" + Date.now();
+const testUserId = new mongoose.Types.ObjectId();
 let testFileId = null;
 
 /**
