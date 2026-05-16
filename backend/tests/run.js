@@ -13,14 +13,15 @@ async function runAllTests() {
   console.log("╔═══════════════════════════════════════════════════════════════╗");
   console.log("║           Version Vault Backend Test Suite                    ║");
   console.log("╚═══════════════════════════════════════════════════════════════╝");
+  const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/version_vault";
   console.log(`Environment: ${env.nodeEnv}`);
-  console.log(`MongoDB: ${env.mongodbUri.substring(0, 50)}...`);
+  console.log(`MongoDB: ${mongoUri.substring(0, 50)}...`);
   console.log("");
 
   try {
     // Connect to database
     console.log("📡 Connecting to database...");
-    await connectDatabase(env.mongodbUri);
+    await connectDatabase(mongoUri);
     console.log("✓ Database connected\n");
 
     // Run test suites
