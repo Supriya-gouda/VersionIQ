@@ -19,6 +19,17 @@ function sanitizeUser(user) {
 }
 
 export async function registerUser({ name, email, password }) {
+  // Validation: Email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    throw new AppError(400, "Invalid email format");
+  }
+
+  // Validation: Password strength (min 8 chars)
+  if (!password || password.length < 8) {
+    throw new AppError(400, "Password must be at least 8 characters long");
+  }
+
   const existing = await User.findOne({ email: email.toLowerCase() });
   if (existing) {
     throw new AppError(409, "Email is already registered");
