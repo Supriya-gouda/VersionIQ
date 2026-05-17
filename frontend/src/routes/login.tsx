@@ -92,26 +92,6 @@ function Login() {
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
-        <div className="relative my-2">
-          <div className="h-px bg-border" />
-          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 bg-background text-xs text-muted-foreground">
-            or continue with
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            className="h-11 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-smooth"
-          >
-            Google
-          </button>
-          <button
-            type="button"
-            className="h-11 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-smooth"
-          >
-            GitHub
-          </button>
-        </div>
       </form>
     </AuthShell>
   );

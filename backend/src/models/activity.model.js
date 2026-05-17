@@ -10,7 +10,7 @@ const activitySchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["upload", "new_version", "restore", "delete", "share", "share_toggle"],
+      enum: ["upload", "new_version", "restore", "delete", "share", "share_toggle", "git_push"],
       required: true,
     },
     fileId: {

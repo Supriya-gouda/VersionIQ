@@ -8,6 +8,8 @@
 
 import { env } from "../config/env.js";
 import { PipelineLog } from "../models/pipeline-log.model.js";
+import { Activity } from "../models/activity.model.js";
+import { User } from "../models/user.model.js";
 import {
   getPipelineLogs,
   getPipelineStats,
@@ -15,6 +17,7 @@ import {
 } from "../services/jenkins.service.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { AppError } from "../utils/app-error.js";
+import axios from "axios";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /pipelines/status
@@ -132,4 +135,69 @@ export const pipelineWebhookController = asyncHandler(async (req, res) => {
     pipeline,
     status: normalizedStatus,
   });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /pipelines/github-webhook
+// Receives push events from GitHub.
+// 1. Logs the activity in MongoDB (for the dashboard).
+// 2. Forwards the request to Jenkins (to trigger the CI/CD pipeline).
+// ─────────────────────────────────────────────────────────────────────────────
+export const githubWebhookController = asyncHandler(async (req, res) => {
+  const event = req.headers["x-github-event"];
+  const payload = req.body;
+
+  console.log(`[Webhook] Received GitHub event: ${event}`);
+
+  if (event === "push") {
+    const branch = payload.ref?.split("/").pop() || "unknown";
+    const commitMsg = payload.head_commit?.message || "No message";
+    const authorName = payload.head_commit?.author?.name || "Unknown";
+    const authorEmail = payload.head_commit?.author?.email;
+
+    // 1. Log Activity
+    try {
+      // Find a user to associate this with (optional but good for UI)
+      let user = null;
+      if (authorEmail) {
+        user = await User.findOne({ email: authorEmail.toLowerCase() });
+      }
+      if (!user) {
+        user = await User.findOne().sort({ createdAt: 1 }); // Fallback to first user
+      }
+
+      if (user) {
+        await Activity.create({
+          owner: user._id,
+          type: "git_push",
+          fileName: branch,
+          details: `pushed: "${commitMsg.split("\n")[0]}" by ${authorName}`,
+        });
+      }
+    } catch (err) {
+      console.error("[Webhook] Failed to log activity:", err.message);
+    }
+
+    // 2. Proxy to Jenkins
+    // We use the internal Docker service name 'jenkins' to reach it.
+    const jenkinsUrl = "http://jenkins:8080/github-webhook/";
+    try {
+      const jRes = await axios.post(jenkinsUrl, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-GitHub-Event": "push",
+          "X-GitHub-Delivery": req.headers["x-github-delivery"] || "",
+          "X-Hub-Signature": req.headers["x-hub-signature"] || "",
+          "X-Hub-Signature-256": req.headers["x-hub-signature-256"] || "",
+        },
+        timeout: 5000,
+      });
+      console.log(`[Webhook] Successfully forwarded to Jenkins: ${jRes.status} ${jRes.statusText}`);
+    } catch (err) {
+      console.warn("[Webhook] Could not forward to Jenkins:", err.response?.status || err.message);
+    }
+  }
+
+  // Always return 200 to GitHub
+  res.status(200).json({ success: true, event });
 });
