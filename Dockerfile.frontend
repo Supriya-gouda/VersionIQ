@@ -35,7 +35,10 @@ RUN apk add --no-cache dumb-init curl
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
 # Copy built assets and the minimal runtime files
+# TanStack Start's SSR preview plugin expects the server at /app/dist/server/server.js
+# Vite's static preview server (running with root: "frontend") expects assets at /app/frontend/dist/client/
 COPY --from=builder --chown=nextjs:nodejs /app/frontend/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/dist ./frontend/dist
 COPY --from=builder --chown=nextjs:nodejs /app/frontend/src ./frontend/src
 COPY --from=builder --chown=nextjs:nodejs /app/frontend/tsconfig.json ./frontend/tsconfig.json
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
