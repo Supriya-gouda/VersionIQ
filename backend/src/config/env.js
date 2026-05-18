@@ -25,7 +25,7 @@ export const env = {
   openAiApiKey: process.env.OPENAI_API_KEY ?? "",
   openAiModel: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
   geminiApiKey: process.env.GEMINI_API_KEY ?? "",
-  geminiModel: process.env.GEMINI_MODEL ?? "gemini-flash-latest",
+  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
   jenkinsBaseUrl: process.env.JENKINS_BASE_URL ?? "",
   jenkinsUser: process.env.JENKINS_USER ?? "",
   jenkinsToken: process.env.JENKINS_TOKEN ?? "",

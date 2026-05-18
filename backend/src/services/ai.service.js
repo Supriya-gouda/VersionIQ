@@ -70,59 +70,57 @@ export async function generateSummary({
   const localSummary = buildLocalSummary(diffStats, versionNumber);
   const detailed = buildDetailedSummary(diffStats, versionNumber);
 
-  // 1. Try Gemini if configured
+  // 1. Try Gemini if configured (with automatic model candidate fallback chain for robust 503/429 protection)
   if (env.geminiApiKey) {
-    try {
-      const result = await generateGeminiSummary({
-        diffStats,
-        versionNumber,
-        previousContent,
-        currentContent,
-      });
-      const summary = typeof result === "string" ? result : result.summary;
+    const modelCandidates = [
+      env.geminiModel || "gemini-2.5-flash",
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-lite",
+    ];
 
-      // 1.1 Verification Step
-      const isGeneric = !summary || summary.length < 15 || /no substantial changes/i.test(summary);
+    let lastError = null;
+    for (const model of modelCandidates) {
+      try {
+        console.log(`[Gemini] Attempting summary generation using model: '${model}'...`);
+        const result = await generateGeminiSummary({
+          diffStats,
+          versionNumber,
+          previousContent,
+          currentContent,
+          model,
+        });
+        const summary = typeof result === "string" ? result : result.summary;
 
-      if (summary && !isGeneric) {
-        return {
-          summary,
-          source: "gemini",
-          model: env.geminiModel,
-          detailed,
-          aiDetails: {
-            topicSummary: result.topicSummary || "",
-            extraNotes: result.extraNotes || "",
-            addedLines: result.added || [],
-            removedLines: result.removed || [],
-            modifiedLines: result.modified || [],
-          },
-        };
+        // 1.1 Verification Step
+        const isGeneric = !summary || summary.length < 15 || /no substantial changes/i.test(summary);
+
+        if (summary && !isGeneric) {
+          return {
+            summary,
+            source: "gemini",
+            model: model,
+            detailed,
+            aiDetails: {
+              topicSummary: result.topicSummary || "",
+              extraNotes: result.extraNotes || "",
+              addedLines: result.added || [],
+              removedLines: result.removed || [],
+              modifiedLines: result.modified || [],
+            },
+          };
+        }
+        console.warn(`[Gemini] Model '${model}' produced a generic/empty summary, trying next fallback...`);
+      } catch (error) {
+        lastError = error;
+        if (error.response && error.response.data) {
+          console.error(`[Gemini] Model '${model}' detailed error response:`, JSON.stringify(error.response.data, null, 2));
+        }
+        console.warn(`[Gemini] Model '${model}' summary call failed: ${error.message}. Retrying next available model...`);
       }
-      console.warn("Gemini produced a generic or empty summary, trying fallback...");
-      return {
-        summary:
-          "Gemini returned a generic response. Try providing more context in your code changes.",
-        source: "gemini",
-        model: env.geminiModel,
-        detailed,
-        aiDetails: {
-          topicSummary: "Generic Response",
-          extraNotes: "The AI did not provide a substantial explanation for these changes.",
-        },
-      };
-    } catch (error) {
-      console.warn(`Gemini summary failed: ${error.message}`);
-      return {
-        summary: `Gemini API Error: ${error.message}. Please check your connection, API key limits, or model status.`,
-        source: "gemini",
-        model: env.geminiModel,
-        detailed,
-        aiDetails: {
-          topicSummary: "API Error",
-          extraNotes: "Failed to communicate with Google Generative Language API.",
-        },
-      };
+    }
+
+    if (lastError) {
+      console.warn(`[Gemini] All Gemini candidate models failed to generate a summary. Failing over to OpenAI or Local.`);
     }
   }
 
@@ -205,9 +203,10 @@ async function generateGeminiSummary({
   versionNumber,
   previousContent,
   currentContent,
+  model = env.geminiModel,
 }) {
   const prompt = buildPrompt({ diffStats, versionNumber, previousContent, currentContent });
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${env.geminiModel}:generateContent?key=${env.geminiApiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.geminiApiKey}`;
 
   const response = await axios.post(
     url,

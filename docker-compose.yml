@@ -33,7 +33,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
     ports:
       # Bound to 127.0.0.1 — MongoDB should never be exposed beyond the host
-      - "127.0.0.1:27017:27017"
+      - "127.0.0.1:27018:27017"
     volumes:
       - mongo_data:/data/db
       - mongo_config:/data/configdb
@@ -42,7 +42,7 @@ services:
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
-      timeout: 5s
+      timeout: 15s
       retries: 5
       start_period: 10s
     deploy:
@@ -63,6 +63,9 @@ services:
         NODE_ENV: production
     container_name: version-vault-backend
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     depends_on:
       mongodb:
         condition: service_healthy
