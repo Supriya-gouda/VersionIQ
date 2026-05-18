@@ -36,6 +36,11 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
 # Copy built assets and the minimal runtime files
 COPY --from=builder --chown=nextjs:nodejs /app/frontend/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/src ./frontend/src
+COPY --from=builder --chown=nextjs:nodejs /app/frontend/tsconfig.json ./frontend/tsconfig.json
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
+COPY --from=builder --chown=nextjs:nodejs /app/vite.config.ts ./vite.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/components.json ./components.json
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
 
