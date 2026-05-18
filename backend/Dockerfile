@@ -6,15 +6,15 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Stage 1: install production dependencies ─────────────────────────────────
-FROM node:20-alpine AS dependencies
+FROM node:22-alpine AS dependencies
 LABEL stage=dependencies
 WORKDIR /app
 COPY package*.json ./
 # --omit=dev keeps the image lean; devDependencies are not needed at runtime
-RUN npm ci --no-optional --no-audit --no-fund --omit=dev
+RUN npm ci --no-audit --no-fund --omit=dev
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 LABEL maintainer="version-vault"
 LABEL version="1.0.0"
 
