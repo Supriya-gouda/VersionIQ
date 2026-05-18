@@ -309,7 +309,9 @@ function AISummary() {
                               }
                             }
                           });
-                          linesToShow = allLines.filter((_: string, idx: number) => indices.has(idx));
+                          linesToShow = allLines.filter((_: string, idx: number) =>
+                            indices.has(idx),
+                          );
                         }
 
                         return linesToShow.map((line: string, i: number) => {

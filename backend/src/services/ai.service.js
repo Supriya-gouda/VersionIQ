@@ -82,10 +82,7 @@ export async function generateSummary({
       const summary = typeof result === "string" ? result : result.summary;
 
       // 1.1 Verification Step
-      const isGeneric =
-        !summary ||
-        summary.length < 15 ||
-        /no substantial changes/i.test(summary);
+      const isGeneric = !summary || summary.length < 15 || /no substantial changes/i.test(summary);
 
       if (summary && !isGeneric) {
         return {
@@ -104,11 +101,15 @@ export async function generateSummary({
       }
       console.warn("Gemini produced a generic or empty summary, trying fallback...");
       return {
-        summary: "Gemini returned a generic response. Try providing more context in your code changes.",
+        summary:
+          "Gemini returned a generic response. Try providing more context in your code changes.",
         source: "gemini",
         model: env.geminiModel,
         detailed,
-        aiDetails: { topicSummary: "Generic Response", extraNotes: "The AI did not provide a substantial explanation for these changes." }
+        aiDetails: {
+          topicSummary: "Generic Response",
+          extraNotes: "The AI did not provide a substantial explanation for these changes.",
+        },
       };
     } catch (error) {
       console.warn(`Gemini summary failed: ${error.message}`);
@@ -117,7 +118,10 @@ export async function generateSummary({
         source: "gemini",
         model: env.geminiModel,
         detailed,
-        aiDetails: { topicSummary: "API Error", extraNotes: "Failed to communicate with Google Generative Language API." }
+        aiDetails: {
+          topicSummary: "API Error",
+          extraNotes: "Failed to communicate with Google Generative Language API.",
+        },
       };
     }
   }
@@ -146,8 +150,9 @@ export async function generateSummary({
     detailed,
     aiDetails: {
       topicSummary: "AI summary unavailable",
-      extraNotes: "Fell back to local line diff. Please ensure a valid GEMINI_API_KEY or OPENAI_API_KEY is set in backend/.env."
-    }
+      extraNotes:
+        "Fell back to local line diff. Please ensure a valid GEMINI_API_KEY or OPENAI_API_KEY is set in backend/.env.",
+    },
   };
 }
 

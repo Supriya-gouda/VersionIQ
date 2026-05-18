@@ -369,21 +369,30 @@ function VersionsPage() {
                       </div>
                     )}
                     <div className="space-y-1">
-                      {diffResult.semanticSummary.aiDetails.addedLines?.map((line: string, i: number) => (
-                        <div key={`added-${i}`} className="text-sm text-success flex gap-2">
-                          <span className="font-bold">+</span> {line}
-                        </div>
-                      ))}
-                      {diffResult.semanticSummary.aiDetails.removedLines?.map((line: string, i: number) => (
-                        <div key={`removed-${i}`} className="text-sm text-destructive flex gap-2">
-                          <span className="font-bold">-</span> {line}
-                        </div>
-                      ))}
-                      {diffResult.semanticSummary.aiDetails.modifiedLines?.map((line: string, i: number) => (
-                        <div key={`modified-${i}`} className="text-sm text-warning-foreground flex gap-2">
-                          <span className="font-bold">~</span> {line}
-                        </div>
-                      ))}
+                      {diffResult.semanticSummary.aiDetails.addedLines?.map(
+                        (line: string, i: number) => (
+                          <div key={`added-${i}`} className="text-sm text-success flex gap-2">
+                            <span className="font-bold">+</span> {line}
+                          </div>
+                        ),
+                      )}
+                      {diffResult.semanticSummary.aiDetails.removedLines?.map(
+                        (line: string, i: number) => (
+                          <div key={`removed-${i}`} className="text-sm text-destructive flex gap-2">
+                            <span className="font-bold">-</span> {line}
+                          </div>
+                        ),
+                      )}
+                      {diffResult.semanticSummary.aiDetails.modifiedLines?.map(
+                        (line: string, i: number) => (
+                          <div
+                            key={`modified-${i}`}
+                            className="text-sm text-warning-foreground flex gap-2"
+                          >
+                            <span className="font-bold">~</span> {line}
+                          </div>
+                        ),
+                      )}
                     </div>
                     {diffResult.semanticSummary.aiDetails.extraNotes && (
                       <div className="text-xs text-muted-foreground italic mt-2">
