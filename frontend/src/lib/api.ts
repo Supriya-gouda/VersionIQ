@@ -220,6 +220,18 @@ export function compareVersions(fileId: string, v1: string, v2: string) {
       v2: { id: string; number: number; summary: string };
       diffStats: { added: number; removed: number; modified: number };
       textDiff: string;
+      semanticSummary?: {
+        summary: string;
+        source?: string;
+        model?: string;
+        aiDetails?: {
+          topicSummary?: string;
+          extraNotes?: string;
+          addedLines?: string[];
+          removedLines?: string[];
+          modifiedLines?: string[];
+        };
+      };
     };
   }>(`/files/${fileId}/compare/${v1}/${v2}`, "GET");
 }
@@ -295,7 +307,7 @@ export function getSharedInfo(token: string) {
 }
 
 export function downloadSharedFile(token: string) {
-  window.open(`${env.apiUrl}/public/share/${token}/download`, "_blank");
+  window.open(`${API_BASE_URL}/public/share/${token}/download`, "_blank");
 }
 
 export function downloadFile(fileId: string) {

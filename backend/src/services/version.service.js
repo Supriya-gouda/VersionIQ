@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import * as pdfParseModule from "pdf-parse";
+const pdfParse = pdfParseModule.default || pdfParseModule;
 
 import { env } from "../config/env.js";
 import { FileRecord } from "../models/file.model.js";
@@ -54,7 +56,22 @@ function isTextLikeMime(mimeType, originalName = "") {
   return textExtensions.some((ext) => originalName.toLowerCase().endsWith(ext));
 }
 
+function isPdf(mimeType, originalName = "") {
+  return mimeType === "application/pdf" || originalName.toLowerCase().endsWith(".pdf");
+}
+
 async function readTextIfPossible(filePath, mimeType, originalName = "") {
+  if (isPdf(mimeType, originalName)) {
+    try {
+      const dataBuffer = await fs.readFile(filePath);
+      const data = await pdfParse(dataBuffer);
+      return data.text || "";
+    } catch (error) {
+      console.error(`[ERROR] Failed to parse PDF: ${error.message}`);
+      return "";
+    }
+  }
+
   if (!isTextLikeMime(mimeType, originalName)) {
     return "";
   }
@@ -274,11 +291,25 @@ export async function getVersionDiff({ userId, fileId, v1Id, v2Id }) {
   const diffStats = calculateLineDiff(text1, text2);
   const textDiff = generateTextDiff(text1, text2);
 
+  let semanticSummary = null;
+  try {
+    const summaryResult = await generateSummary({
+      diffStats,
+      versionNumber: v2.versionNumber,
+      previousContent: text1,
+      currentContent: text2,
+    });
+    semanticSummary = summaryResult;
+  } catch (error) {
+    console.error(`[ERROR] Failed to generate semantic summary for diff: ${error.message}`);
+  }
+
   return {
     v1: { id: v1._id, number: v1.versionNumber, summary: v1.summary },
     v2: { id: v2._id, number: v2.versionNumber, summary: v2.summary },
     diffStats,
     textDiff,
+    semanticSummary,
     v1Content: text1,
     v2Content: text2,
   };

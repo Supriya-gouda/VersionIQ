@@ -85,9 +85,7 @@ export async function generateSummary({
       const isGeneric =
         !summary ||
         summary.length < 15 ||
-        /the file was updated|updated version|generic changes|changes were made|this is version|no substantial changes/i.test(
-          summary,
-        );
+        /no substantial changes/i.test(summary);
 
       if (summary && !isGeneric) {
         return {
@@ -105,8 +103,22 @@ export async function generateSummary({
         };
       }
       console.warn("Gemini produced a generic or empty summary, trying fallback...");
+      return {
+        summary: "Gemini returned a generic response. Try providing more context in your code changes.",
+        source: "gemini",
+        model: env.geminiModel,
+        detailed,
+        aiDetails: { topicSummary: "Generic Response", extraNotes: "The AI did not provide a substantial explanation for these changes." }
+      };
     } catch (error) {
       console.warn(`Gemini summary failed: ${error.message}`);
+      return {
+        summary: `Gemini API Error: ${error.message}. Please check your connection, API key limits, or model status.`,
+        source: "gemini",
+        model: env.geminiModel,
+        detailed,
+        aiDetails: { topicSummary: "API Error", extraNotes: "Failed to communicate with Google Generative Language API." }
+      };
     }
   }
 
@@ -132,6 +144,10 @@ export async function generateSummary({
     summary: localSummary,
     source: "local",
     detailed,
+    aiDetails: {
+      topicSummary: "AI summary unavailable",
+      extraNotes: "Fell back to local line diff. Please ensure a valid GEMINI_API_KEY or OPENAI_API_KEY is set in backend/.env."
+    }
   };
 }
 
@@ -219,14 +235,14 @@ ${prompt}`,
         },
       ],
       generationConfig: {
-        maxOutputTokens: 500,
+        maxOutputTokens: 4096,
         temperature: 0.7,
         response_mime_type: "application/json",
       },
     },
     {
       headers: { "Content-Type": "application/json" },
-      timeout: 10000,
+      timeout: 30000,
     },
   );
 
@@ -240,10 +256,15 @@ ${prompt}`,
       try {
         return JSON.parse(jsonMatch[0]);
       } catch {
-        return { summary: raw };
+        // Try to salvage at least the summary field if it's partially formed
+        const summaryMatch = raw.match(/"summary"\s*:\s*"([^"]+)/);
+        if (summaryMatch) {
+          return { summary: summaryMatch[1] + "..." };
+        }
+        return { summary: "File changed but AI explanation was incomplete." };
       }
     }
-    return { summary: raw };
+    return { summary: "File changed but AI explanation was incomplete." };
   }
 }
 

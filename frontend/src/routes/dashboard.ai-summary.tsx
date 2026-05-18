@@ -155,7 +155,7 @@ function AISummary() {
                   </div>
                   {summary.source && (
                     <Badge
-                      variant={summary.source === "local" ? "outline" : "secondary"}
+                      variant={summary.source === "local" ? "neutral" : "info"}
                       className="text-[10px] uppercase h-5"
                     >
                       Powered by {summary.source} {summary.model && `(${summary.model})`}
@@ -267,7 +267,7 @@ function AISummary() {
               >
                 <FileSearch className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                 <span className="font-semibold">Version Change Diff</span>
-                <Badge variant="outline" className="text-[10px] uppercase ml-2">
+                <Badge variant="neutral" className="text-[10px] uppercase ml-2">
                   {showDiff ? "Hide" : "Show"}
                 </Badge>
               </button>
@@ -302,14 +302,14 @@ function AISummary() {
                         let linesToShow = allLines;
                         if (diffMode === "compact") {
                           const indices = new Set<number>();
-                          allLines.forEach((line, idx) => {
+                          allLines.forEach((line: string, idx: number) => {
                             if (line.startsWith("+") || line.startsWith("-")) {
                               for (let k = idx - 3; k <= idx + 3; k++) {
                                 if (k >= 0 && k < allLines.length) indices.add(k);
                               }
                             }
                           });
-                          linesToShow = allLines.filter((_, idx) => indices.has(idx));
+                          linesToShow = allLines.filter((_: string, idx: number) => indices.has(idx));
                         }
 
                         return linesToShow.map((line: string, i: number) => {
