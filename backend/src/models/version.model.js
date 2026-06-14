@@ -38,6 +38,10 @@ const versionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    content: {
+      type: String,
+      default: "",
+    },
     status: {
       type: String,
       enum: ["stable", "risky", "failed"],

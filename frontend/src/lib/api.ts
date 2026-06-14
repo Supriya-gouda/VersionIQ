@@ -159,7 +159,13 @@ async function apiRequest<T>(
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = (data as { message?: string }).message ?? "Request failed";
+    // Backend error responses may use either `message` or `error.message`.
+    // Normalize so callers receive the most informative message available.
+    // Examples:
+    // - { message: '...' }
+    // - { success: false, error: { message: '...' } }
+    const message =
+      (data && ((data as any).message || (data as any).error?.message)) ?? "Request failed";
     throw new Error(message);
   }
 

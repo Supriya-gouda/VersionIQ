@@ -4,6 +4,7 @@ import multer from "multer";
 import crypto from "crypto";
 
 import { env } from "./env.js";
+import { AppError } from "../utils/app-error.js";
 
 const uploadRootPath = path.resolve(process.cwd(), env.uploadRoot, "tmp");
 fs.mkdirSync(uploadRootPath, { recursive: true });
@@ -62,7 +63,7 @@ export const uploadMiddleware = multer({
     ];
 
     if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error(`File type ${file.mimetype} is not allowed`));
+      return cb(new AppError(400, `File type ${file.mimetype} is not allowed`));
     }
 
     cb(null, true);

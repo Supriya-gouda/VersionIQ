@@ -70,6 +70,38 @@ export async function generateSummary({
   const localSummary = buildLocalSummary(diffStats, versionNumber);
   const detailed = buildDetailedSummary(diffStats, versionNumber);
 
+  // INPUT VALIDATION: Check if we have sufficient content
+  const MIN_CONTENT_LENGTH = 10;
+  const currentContentTrimmed = (currentContent || "").trim();
+  const previousContentTrimmed = (previousContent || "").trim();
+  const currentLength = currentContentTrimmed.length;
+  const previousLength = previousContentTrimmed.length;
+
+  console.log(
+    `[INFO] AI Summary: Input validation - Current: ${currentLength} chars, Previous: ${previousLength} chars`,
+  );
+
+  // If current version has no meaningful content, use local summary
+  if (currentLength < MIN_CONTENT_LENGTH) {
+    // For first version (no previous content), this is expected
+    if (versionNumber === 1 || previousLength < MIN_CONTENT_LENGTH) {
+      console.warn(
+        `[WARNING] Insufficient content for AI analysis (v${versionNumber}). Using local summary. Current: ${currentLength} chars, Previous: ${previousLength} chars`,
+      );
+
+      if (currentLength === 0 && previousLength === 0) {
+        console.warn(`[WARNING] Both versions are empty - file may be scanned PDF or corrupted`);
+      }
+
+      return {
+        summary: currentLength > 0 ? localSummary : `Version ${versionNumber} uploaded.`,
+        source: "local",
+        reason: "insufficient_content",
+        detailed,
+      };
+    }
+  }
+
   // 1. Try Gemini if configured (with automatic model candidate fallback chain for robust 503/429 protection)
   if (env.geminiApiKey) {
     const modelCandidates = [
@@ -176,7 +208,7 @@ export async function generateSummary({
 
   return {
     summary: summaryText,
-    source: "local-intelligence",
+    source: "local",
     detailed,
     aiDetails: {
       topicSummary,
@@ -197,6 +229,11 @@ async function generateOpenAiSummary({
   previousContent,
   currentContent,
 }) {
+  const prompt = buildPrompt({ diffStats, versionNumber, previousContent, currentContent });
+  console.log(
+    `[OpenAI] Prompt size: ${prompt.length} chars | Content: current=${currentContent.length} chars, previous=${previousContent.length} chars`,
+  );
+
   const messages = [
     {
       role: "system",
@@ -205,28 +242,36 @@ async function generateOpenAiSummary({
     },
     {
       role: "user",
-      content: buildPrompt({ diffStats, versionNumber, previousContent, currentContent }),
+      content: prompt,
     },
   ];
 
-  const response = await axios.post(
-    "https://api.openai.com/v1/chat/completions",
-    {
-      model: env.openAiModel,
-      messages,
-      max_tokens: 150,
-      temperature: 0.7,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${env.openAiApiKey}`,
-        "Content-Type": "application/json",
+  try {
+    console.log(`[OpenAI] Making API call to ${env.openAiModel}...`);
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: env.openAiModel,
+        messages,
+        max_tokens: 150,
+        temperature: 0.7,
       },
-      timeout: 8000,
-    },
-  );
+      {
+        headers: {
+          Authorization: `Bearer ${env.openAiApiKey}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 8000,
+      },
+    );
 
-  return response.data?.choices?.[0]?.message?.content?.trim();
+    const result = response.data?.choices?.[0]?.message?.content?.trim();
+    console.log(`[OpenAI] Response received: ${result?.length || 0} characters`);
+    return result;
+  } catch (error) {
+    console.error(`[OpenAI] API call failed: ${error.message}`);
+    throw error;
+  }
 }
 
 /**
@@ -240,16 +285,25 @@ async function generateGeminiSummary({
   model = env.geminiModel,
 }) {
   const prompt = buildPrompt({ diffStats, versionNumber, previousContent, currentContent });
+  console.log(
+    `[Gemini] Request details: model=${model} | prompt=${prompt.length} chars | current=${currentContent.length} chars | previous=${previousContent.length} chars`,
+  );
+  console.log(
+    `[Gemini] Prompt preview: ${prompt.substring(0, 200)}...` // First 200 chars
+  );
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.geminiApiKey}`;
 
-  const response = await axios.post(
-    url,
-    {
-      contents: [
-        {
-          parts: [
-            {
-              text: `You are a high-level technical version control analyst. Your task is to explain file changes in PLAIN, READABLE English for a non-developer or a project manager.
+  try {
+    console.log(`[Gemini] Making API call to Gemini ${model}...`);
+    const response = await axios.post(
+      url,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: `You are a high-level technical version control analyst. Your task is to explain file changes in PLAIN, READABLE English for a non-developer or a project manager.
 ---
 CRITICAL INSTRUCTIONS:
 1. Return a JSON object with the following structure:
@@ -268,41 +322,58 @@ CRITICAL INSTRUCTIONS:
 
 ---
 ${prompt}`,
-            },
-          ],
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          maxOutputTokens: 4096,
+          temperature: 0.7,
+          response_mime_type: "application/json",
         },
-      ],
-      generationConfig: {
-        maxOutputTokens: 4096,
-        temperature: 0.7,
-        response_mime_type: "application/json",
       },
-    },
-    {
-      headers: { "Content-Type": "application/json" },
-      timeout: 30000,
-    },
-  );
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: 30000,
+      },
+    );
 
-  const raw = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-  try {
-    return JSON.parse(raw);
-  } catch (e) {
-    // Fallback if JSON parsing fails despite response_mime_type
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        return JSON.parse(jsonMatch[0]);
-      } catch {
-        // Try to salvage at least the summary field if it's partially formed
-        const summaryMatch = raw.match(/"summary"\s*:\s*"([^"]+)/);
-        if (summaryMatch) {
-          return { summary: summaryMatch[1] + "..." };
+    const raw = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    console.log(`[Gemini] Raw response length: ${raw.length} characters`);
+    console.log(`[Gemini] Raw response preview: ${raw.substring(0, 300)}...`);
+
+    try {
+      const parsed = JSON.parse(raw);
+      console.log(`[Gemini] Successfully parsed JSON response`);
+      return parsed;
+    } catch (e) {
+      console.warn(`[Gemini] JSON parsing failed, attempting fallback extraction...`);
+      // Fallback if JSON parsing fails despite response_mime_type
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          console.log(`[Gemini] Successfully parsed from fallback JSON extraction`);
+          return parsed;
+        } catch {
+          console.warn(`[Gemini] Fallback JSON parsing also failed`);
+          // Try to salvage at least the summary field if it's partially formed
+          const summaryMatch = raw.match(/"summary"\s*:\s*"([^"]+)/);
+          if (summaryMatch) {
+            console.warn(`[Gemini] Extracted summary field from malformed response`);
+            return { summary: summaryMatch[1] + "..." };
+          }
+          return { summary: "File changed but AI explanation was incomplete." };
         }
-        return { summary: "File changed but AI explanation was incomplete." };
       }
+      return { summary: "File changed but AI explanation was incomplete." };
     }
-    return { summary: "File changed but AI explanation was incomplete." };
+  } catch (error) {
+    console.error(`[Gemini] API call failed: ${error.message || error.toString()}`);
+    if (error.response?.data) {
+      console.error(`[Gemini] Error details:`, JSON.stringify(error.response.data));
+    }
+    throw error;
   }
 }
 

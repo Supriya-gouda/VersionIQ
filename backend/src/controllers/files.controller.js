@@ -92,8 +92,15 @@ export const downloadFileController = asyncHandler(async (req, res) => {
 
 export const deleteFileController = asyncHandler(async (req, res) => {
   const file = await findOwnedFile(req.params.id, req.user._id);
-  file.isDeleted = true;
-  await file.save();
+  
+  // Physically delete all versions from the file system
+  await fileStorage.deleteAllVersions(String(req.user._id), String(file._id));
+
+  // Remove the Version traces from MongoDB
+  await Version.deleteMany({ file: file._id, owner: req.user._id });
+
+  // Remove the FileRecord trace from MongoDB
+  await FileRecord.deleteOne({ _id: file._id, owner: req.user._id });
 
   await logActivity({
     owner: req.user._id,
