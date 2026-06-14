@@ -143,10 +143,10 @@ async function readTextIfPossible(filePath, mimeType, originalName = "") {
       console.log(`[INFO] Attempting to extract text from PDF: "${fileName}"`);
       const dataBuffer = await fs.readFile(filePath);
       console.log(`[INFO] PDF buffer loaded: ${dataBuffer.length} bytes`);
-      
+
       let extractedText = "";
       let numpages = "?";
-      
+
       if (typeof pdfParse === "function") {
         // Fallback for pdf-parse v1
         const data = await pdfParse(dataBuffer);
@@ -189,7 +189,9 @@ async function readTextIfPossible(filePath, mimeType, originalName = "") {
   }
 
   if (!isTextLikeMime(mimeType, originalName)) {
-    console.log(`[INFO] File "${fileName}" is not text-like (mime: ${mimeType}) - skipping extraction`);
+    console.log(
+      `[INFO] File "${fileName}" is not text-like (mime: ${mimeType}) - skipping extraction`,
+    );
     return "";
   }
 

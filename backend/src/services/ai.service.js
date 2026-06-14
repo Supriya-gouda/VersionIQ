@@ -124,7 +124,8 @@ export async function generateSummary({
         const summary = typeof result === "string" ? result : result.summary;
 
         // 1.1 Verification Step
-        const isGeneric = !summary || summary.length < 15 || /no substantial changes/i.test(summary);
+        const isGeneric =
+          !summary || summary.length < 15 || /no substantial changes/i.test(summary);
 
         if (summary && !isGeneric) {
           return {
@@ -141,18 +142,27 @@ export async function generateSummary({
             },
           };
         }
-        console.warn(`[Gemini] Model '${model}' produced a generic/empty summary, trying next fallback...`);
+        console.warn(
+          `[Gemini] Model '${model}' produced a generic/empty summary, trying next fallback...`,
+        );
       } catch (error) {
         lastError = error;
         if (error.response && error.response.data) {
-          console.error(`[Gemini] Model '${model}' detailed error response:`, JSON.stringify(error.response.data, null, 2));
+          console.error(
+            `[Gemini] Model '${model}' detailed error response:`,
+            JSON.stringify(error.response.data, null, 2),
+          );
         }
-        console.warn(`[Gemini] Model '${model}' summary call failed: ${error.message}. Retrying next available model...`);
+        console.warn(
+          `[Gemini] Model '${model}' summary call failed: ${error.message}. Retrying next available model...`,
+        );
       }
     }
 
     if (lastError) {
-      console.warn(`[Gemini] All Gemini candidate models failed to generate a summary. Failing over to OpenAI or Local.`);
+      console.warn(
+        `[Gemini] All Gemini candidate models failed to generate a summary. Failing over to OpenAI or Local.`,
+      );
     }
   }
 
@@ -177,33 +187,66 @@ export async function generateSummary({
   // This analyzes the file content locally and generates a stunning technical summary that matches the actual file content,
   // making the dashboard look completely premium and active even under API rate-limit outages!
   const contentLower = (currentContent || previousContent || "").toLowerCase();
-  
+
   let topicSummary = "Source Code Enhancements";
   let summaryText = `This update refactors and optimizes the file structure, modifying ${diffStats.modified} lines and adding ${diffStats.added} lines of clean code.`;
-  let extraNotes = "Optimizes core file logic, improving system performance and code maintainability.";
+  let extraNotes =
+    "Optimizes core file logic, improving system performance and code maintainability.";
   let addedList = [];
   let removedList = [];
   let modifiedList = [];
 
-  if (contentLower.includes("college") || contentLower.includes("student") || contentLower.includes("feedback") || contentLower.includes("php")) {
+  if (
+    contentLower.includes("college") ||
+    contentLower.includes("student") ||
+    contentLower.includes("feedback") ||
+    contentLower.includes("php")
+  ) {
     topicSummary = "College Website & Student Feedback Integration";
-    summaryText = "This update introduces a comprehensive college homepage and secure student feedback collection page. It establishes proper structures and interactive fields for students to log and view reviews.";
+    summaryText =
+      "This update introduces a comprehensive college homepage and secure student feedback collection page. It establishes proper structures and interactive fields for students to log and view reviews.";
     extraNotes = "Streamlines academic feedback workflows and improves student engagement.";
-    addedList = ["Feedback Page: Implemented form structures and database submission hooks", "Visual Theme: Configured welcoming college landing page elements and clean styles"];
-  } else if (contentLower.includes("vpc") || contentLower.includes("aws") || contentLower.includes("cloud") || contentLower.includes("network")) {
+    addedList = [
+      "Feedback Page: Implemented form structures and database submission hooks",
+      "Visual Theme: Configured welcoming college landing page elements and clean styles",
+    ];
+  } else if (
+    contentLower.includes("vpc") ||
+    contentLower.includes("aws") ||
+    contentLower.includes("cloud") ||
+    contentLower.includes("network")
+  ) {
     topicSummary = "Cloud Network Infrastructure Deployment";
-    summaryText = "This version provides instructions and configurations for setting up a secure Virtual Private Cloud (VPC), establishing a public-facing web tier and protecting database services in private subnets.";
-    extraNotes = "Enhances enterprise hosting security and guarantees application network isolation.";
-    addedList = ["Subnet Setup: Defined secure public and private network routing boundaries", "Access Controls: Configured network access logs and standard rules"];
-  } else if (contentLower.includes("auth") || contentLower.includes("login") || contentLower.includes("user")) {
+    summaryText =
+      "This version provides instructions and configurations for setting up a secure Virtual Private Cloud (VPC), establishing a public-facing web tier and protecting database services in private subnets.";
+    extraNotes =
+      "Enhances enterprise hosting security and guarantees application network isolation.";
+    addedList = [
+      "Subnet Setup: Defined secure public and private network routing boundaries",
+      "Access Controls: Configured network access logs and standard rules",
+    ];
+  } else if (
+    contentLower.includes("auth") ||
+    contentLower.includes("login") ||
+    contentLower.includes("user")
+  ) {
     topicSummary = "User Authentication & Session Management";
-    summaryText = "This update enhances the application's secure authentication flow, refining token-based session rehydration and standardizing user validation.";
+    summaryText =
+      "This update enhances the application's secure authentication flow, refining token-based session rehydration and standardizing user validation.";
     extraNotes = "Strengthens user data privacy and prevents unauthorized page access.";
-    addedList = ["Session Persistence: Added robust token storage to prevent sudden logouts", "Validation: Implemented standard credential validation rules"];
+    addedList = [
+      "Session Persistence: Added robust token storage to prevent sudden logouts",
+      "Validation: Implemented standard credential validation rules",
+    ];
   } else {
-    if (diffStats.added > 0) addedList.push(`Additions: Added ${diffStats.added} lines of clean functional logic`);
-    if (diffStats.removed > 0) removedList.push(`Cleanups: Streamlined class files by removing ${diffStats.removed} obsolete lines`);
-    if (diffStats.modified > 0) modifiedList.push(`Refactoring: Enhanced ${diffStats.modified} lines of existing logic`);
+    if (diffStats.added > 0)
+      addedList.push(`Additions: Added ${diffStats.added} lines of clean functional logic`);
+    if (diffStats.removed > 0)
+      removedList.push(
+        `Cleanups: Streamlined class files by removing ${diffStats.removed} obsolete lines`,
+      );
+    if (diffStats.modified > 0)
+      modifiedList.push(`Refactoring: Enhanced ${diffStats.modified} lines of existing logic`);
   }
 
   return {
@@ -289,7 +332,7 @@ async function generateGeminiSummary({
     `[Gemini] Request details: model=${model} | prompt=${prompt.length} chars | current=${currentContent.length} chars | previous=${previousContent.length} chars`,
   );
   console.log(
-    `[Gemini] Prompt preview: ${prompt.substring(0, 200)}...` // First 200 chars
+    `[Gemini] Prompt preview: ${prompt.substring(0, 200)}...`, // First 200 chars
   );
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.geminiApiKey}`;

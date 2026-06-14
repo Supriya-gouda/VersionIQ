@@ -92,7 +92,7 @@ export const downloadFileController = asyncHandler(async (req, res) => {
 
 export const deleteFileController = asyncHandler(async (req, res) => {
   const file = await findOwnedFile(req.params.id, req.user._id);
-  
+
   // Physically delete all versions from the file system
   await fileStorage.deleteAllVersions(String(req.user._id), String(file._id));
 

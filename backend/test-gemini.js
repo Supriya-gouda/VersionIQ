@@ -24,47 +24,46 @@ async function testGemini() {
     console.log("Step 1: Authenticating key & listing available models...");
     const response = await axios.get(listUrl, { timeout: 10000 });
     console.log("✅ Authentication Successful!");
-    
+
     let availableModels = [];
     if (response.data && response.data.models) {
-      availableModels = response.data.models.map(m => m.name.replace("models/", ""));
+      availableModels = response.data.models.map((m) => m.name.replace("models/", ""));
       console.log(`\nFound ${availableModels.length} models. Supported models include:`);
-      availableModels.slice(0, 10).forEach(m => console.log(`  - ${m}`));
+      availableModels.slice(0, 10).forEach((m) => console.log(`  - ${m}`));
       if (availableModels.length > 10) console.log("  ... and more.");
     }
 
     // Step 2: Test content generation with selected model
-    const testModel = availableModels.includes(model) ? model : (availableModels[0] || model);
+    const testModel = availableModels.includes(model) ? model : availableModels[0] || model;
     console.log(`\nStep 2: Testing text generation with model: '${testModel}'...`);
-    
+
     const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${apiKey}`;
     const generateResponse = await axios.post(
       generateUrl,
       {
         contents: [
           {
-            parts: [{ text: "Hello! Reply with exactly 'Gemini is fully operational!'" }]
-          }
-        ]
+            parts: [{ text: "Hello! Reply with exactly 'Gemini is fully operational!'" }],
+          },
+        ],
       },
       {
         headers: { "Content-Type": "application/json" },
-        timeout: 15000
-      }
+        timeout: 15000,
+      },
     );
 
     const reply = generateResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     console.log("\n✅ Content Generation Success!");
     console.log(`Gemini Reply: "${reply}"`);
     console.log("\n🎉 The Gemini API integration is fully functional and ready!");
-    
   } catch (error) {
     console.error("\n❌ API Call Failed!");
     if (error.response) {
       const status = error.response.status;
       const data = error.response.data;
       console.error(`Status Code: ${status}`);
-      
+
       if (status === 403) {
         const msg = data?.error?.message || "";
         if (msg.includes("leaked")) {
@@ -81,11 +80,15 @@ async function testGemini() {
           console.error("========================================================\n");
         } else {
           console.error(`Permission Denied (403): ${msg}`);
-          console.error("Please verify that the Generative Language API is enabled on your API key.");
+          console.error(
+            "Please verify that the Generative Language API is enabled on your API key.",
+          );
         }
       } else if (status === 404) {
         console.error(`Model Not Found (404): ${data?.error?.message}`);
-        console.error("The selected model is deprecated or invalid for your region. Try setting GEMINI_MODEL=gemini-1.5-flash");
+        console.error(
+          "The selected model is deprecated or invalid for your region. Try setting GEMINI_MODEL=gemini-1.5-flash",
+        );
       } else {
         console.error("Error Response Body:", JSON.stringify(data, null, 2));
       }

@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Create a simple PDF file
 const pdfContent = `%PDF-1.4
@@ -35,9 +35,9 @@ startxref
 450
 %%EOF`;
 
-const pdfPath = path.join(__dirname, '..', 'test_document.pdf');
+const pdfPath = path.join(__dirname, "..", "test_document.pdf");
 fs.writeFileSync(pdfPath, pdfContent);
-console.log('✓ PDF created successfully');
-console.log('  Path:', pdfPath);
-console.log('  Size:', pdfContent.length, 'bytes');
-console.log('  First 100 chars:', pdfContent.substring(0, 100));
+console.log("✓ PDF created successfully");
+console.log("  Path:", pdfPath);
+console.log("  Size:", pdfContent.length, "bytes");
+console.log("  First 100 chars:", pdfContent.substring(0, 100));

@@ -9,6 +9,7 @@
 ## EXECUTIVE SUMMARY
 
 The Version Vault Pro document parsing and AI summary pipeline is **architecturally sound** but has **critical implementation gaps** causing:
+
 - 📄 Empty PDF text extraction (silent failures)
 - 🤖 Gemini API receiving insufficient/empty context
 - 📊 Diff calculations working but receiving empty input
@@ -92,28 +93,28 @@ async function readTextIfPossible(filePath, mimeType, originalName = "") {
       return data.text || "";
     } catch (error) {
       console.error(`[ERROR] Failed to parse PDF: ${error.message}`);
-      return "";  // ⚠️ SILENT FAILURE - returns empty string
+      return ""; // ⚠️ SILENT FAILURE - returns empty string
     }
   }
-  
+
   if (isWord(mimeType, originalName)) {
     try {
       const result = await mammoth.extractRawText({ path: filePath });
       return (result && result.value) || "";
     } catch (error) {
       console.error(`[ERROR] Failed to parse Word document: ${error.message}`);
-      return "";  // ⚠️ SILENT FAILURE
+      return ""; // ⚠️ SILENT FAILURE
     }
   }
-  
+
   if (!isTextLikeMime(mimeType, originalName)) {
-    return "";  // ⚠️ SILENT FAILURE - non-text file
+    return ""; // ⚠️ SILENT FAILURE - non-text file
   }
-  
+
   try {
     return await fs.readFile(filePath, "utf-8");
   } catch {
-    return "";  // ⚠️ SILENT FAILURE
+    return ""; // ⚠️ SILENT FAILURE
   }
 }
 ```
@@ -125,25 +126,28 @@ async function readTextIfPossible(filePath, mimeType, originalName = "") {
 ### 1.3 Document Text Extraction
 
 #### PDF Extraction (pdf-parse)
+
 - **Method**: `await pdfParse(buffer)`
 - **Returns**: `{text, numpages, ...}`
 - **Issue**: CommonJS module - requires `createRequire(import.meta.url)`
 - **Status**: ✅ Correctly implemented with createRequire
 
 #### Word Extraction (mammoth)
+
 - **Method**: `await mammoth.extractRawText({path})`
 - **Returns**: `{value: string, messages: []}`
 - **Status**: ✅ Correctly implemented
 
 #### Text Extraction (fs.readFile)
+
 - **Method**: `await fs.readFile(filePath, 'utf-8')`
 - **Status**: ✅ Correctly implemented
 
 **Detection Logic**:
+
 ```javascript
 function isPdf(mimeType, originalName = "") {
-  return mimeType === "application/pdf" || 
-         originalName.toLowerCase().endsWith(".pdf");
+  return mimeType === "application/pdf" || originalName.toLowerCase().endsWith(".pdf");
 }
 
 function isWord(mimeType, originalName = "") {
@@ -176,11 +180,11 @@ const version = await Version.create({
   size: upload.size,
   storagePath: finalPath,
   status,
-  summary: summary.summary,              // ← Populated from generateSummary()
+  summary: summary.summary, // ← Populated from generateSummary()
   summarySource: summary.source || "local", // ← Track source
   summaryModel: summary.model || "",
-  diffStats,                              // ← From diff calculation
-  aiDetails: summary.aiDetails || {},    // ← AI analysis details
+  diffStats, // ← From diff calculation
+  aiDetails: summary.aiDetails || {}, // ← AI analysis details
   isCurrent: true,
 });
 ```
@@ -238,7 +242,8 @@ export function calculateLineDiff(previousContent = "", nextContent = "") {
 }
 ```
 
-**Algorithm**: 
+**Algorithm**:
+
 - Line-by-line comparison
 - Filters empty lines: `.filter((l) => l.trim())`
 - Calculates similarity via Longest Common Subsequence (LCS)
@@ -247,6 +252,7 @@ export function calculateLineDiff(previousContent = "", nextContent = "") {
 **Status**: ✅ Correct algorithm, works with any input
 
 **⚠️ Critical Issue**: If previousContent or nextContent is empty string:
+
 - `previousLines = []`
 - `nextLines = []`
 - Result: `{added: 0, removed: 0, modified: 0, similarity: 0}`
@@ -261,6 +267,7 @@ Located in: `backend/src/services/ai.service.js`
 **Entry Point**: `generateSummary({diffStats, versionNumber, previousContent, currentContent})`
 
 **Fallback Chain**:
+
 1. **Try Gemini** (if GEMINI_API_KEY set)
    - Models: gemini-2.5-flash → gemini-2.0-flash → gemini-2.0-flash-lite
    - For each model: make API call, check for empty response, try next
@@ -277,6 +284,7 @@ Located in: `backend/src/services/ai.service.js`
 ### 1.7 Gemini Integration Flow
 
 **Prompt Construction** (`buildPrompt()`):
+
 ```javascript
 function buildPrompt({ diffStats, versionNumber, previousContent, currentContent }) {
   const textDiff = generateTextDiff(previousContent, currentContent);
@@ -288,39 +296,42 @@ function buildPrompt({ diffStats, versionNumber, previousContent, currentContent
   text += `- Modified: ${diffStats.modified} lines\n`;
   text += `- Similarity: ${diffStats.similarity || 0}%\n\n`;
   text += `CHANGES PREVIEW:\n${textDiff}\n\n`;
-  
+
   if (previousContent && currentContent) {
     text += `FULL CONTENT CONTEXT (Partial):\n`;
     text += `--- v${versionNumber - 1} ---\n${previousContent.substring(0, 4000)}\n\n`;
     text += `--- v${versionNumber} ---\n${currentContent.substring(0, 4000)}\n`;
   }
-  
+
   return text;
 }
 ```
 
 **⚠️ Issues**:
+
 - If `previousContent` is empty: `if (previousContent && currentContent)` check fails
 - Sends prompt with just statistics and empty diff
 - Gemini receives minimal context
 
 **API Call**:
+
 ```javascript
 const response = await axios.post(
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.geminiApiKey}`,
   {
-    contents: [{parts: [{text: prompt}]}],
+    contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       maxOutputTokens: 4096,
       temperature: 0.7,
       response_mime_type: "application/json",
     },
   },
-  {headers: {"Content-Type": "application/json"}, timeout: 30000}
+  { headers: { "Content-Type": "application/json" }, timeout: 30000 },
 );
 ```
 
 **Response Parsing**:
+
 ```javascript
 const raw = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 try {
@@ -379,6 +390,7 @@ if (contentLower.includes("college") || contentLower.includes("student")) {
 ### 1.10 MongoDB Storage
 
 **Version Model Fields**:
+
 ```javascript
 summary: {type: String, default: ""}
 summarySource: {type: String, enum: ["gemini", "openai", "local"], default: "local"}
@@ -434,16 +446,17 @@ try {
 **Location**: `backend/src/services/version.service.js` - `readTextIfPossible()`
 
 **Problem**:
+
 ```javascript
 async function readTextIfPossible(filePath, mimeType, originalName = "") {
   if (isPdf(mimeType, originalName)) {
     try {
       const dataBuffer = await fs.readFile(filePath);
       const data = await pdfParse(dataBuffer);
-      return data.text || "";  // ← Empty string if pdf-parse fails
+      return data.text || ""; // ← Empty string if pdf-parse fails
     } catch (error) {
       console.error(`[ERROR] Failed to parse PDF: ${error.message}`);
-      return "";  // ← Returns empty string, no indication of failure
+      return ""; // ← Returns empty string, no indication of failure
     }
   }
   // ... more code
@@ -451,6 +464,7 @@ async function readTextIfPossible(filePath, mimeType, originalName = "") {
 ```
 
 **Why It Fails**:
+
 1. PDF file might be scanned (image-based, no OCR)
 2. PDF might be corrupted
 3. pdf-parse might fail
@@ -464,18 +478,20 @@ async function readTextIfPossible(filePath, mimeType, originalName = "") {
 
 **Location**: `backend/src/services/ai.service.js` - `generateSummary()`
 
-**Problem**: 
+**Problem**:
+
 - Receives `previousContent = ""` or `currentContent = ""`
 - No validation before calling Gemini/OpenAI
 - Sends minimal context to APIs
 
 **Example**:
+
 ```javascript
 const summaryResult = await generateSummary({
-  diffStats: {added: 0, removed: 0, modified: 0},
+  diffStats: { added: 0, removed: 0, modified: 0 },
   versionNumber: 1,
-  previousContent: "",   // ← EMPTY!
-  currentContent: "",    // ← EMPTY!
+  previousContent: "", // ← EMPTY!
+  currentContent: "", // ← EMPTY!
 });
 ```
 
@@ -488,6 +504,7 @@ const summaryResult = await generateSummary({
 **Location**: `backend/src/services/version.service.js` - `createOrUpdateFileVersion()`
 
 **Problem**:
+
 ```javascript
 try {
   diffStats = calculateLineDiff(previousText, nextText);
@@ -502,7 +519,8 @@ try {
 let summary = { summary: `Version ${nextVersionNumber} uploaded.` };
 ```
 
-**Impact**: 
+**Impact**:
+
 - Gemini API errors silently ignored
 - Rate limit errors (429) treated same as success
 - Summary always becomes generic fallback
@@ -512,6 +530,7 @@ let summary = { summary: `Version ${nextVersionNumber} uploaded.` };
 ### Issue #4: Incomplete Logging 🔴 HIGH
 
 **Missing Logging**:
+
 - ❌ PDF extraction start/end with byte count
 - ❌ Text extraction length for each file
 - ❌ Empty content detection
@@ -529,6 +548,7 @@ let summary = { summary: `Version ${nextVersionNumber} uploaded.` };
 **Location**: `backend/src/services/ai.service.js` - `generateGeminiSummary()`
 
 **Issue**:
+
 ```javascript
 const raw = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 try {
@@ -559,12 +579,14 @@ try {
 **Problem**: No OCR support detected
 
 **Current Flow**:
+
 - PDF uploaded
 - pdf-parse extracts text
 - If scanned: text = "" (0 characters)
 - No error, continues silently
 
 **Missing**: Automatic detection:
+
 ```
 Extract text
   ↓
@@ -584,6 +606,7 @@ If length < threshold:
 **Problem**: Hardcoded keyword matching returns irrelevant summaries
 
 **Example**:
+
 - Upload: `notes.txt` containing "college feedback"
 - Local AI matches keyword "college"
 - Returns: "This update introduces a comprehensive college homepage and secure student feedback collection page..."
@@ -594,21 +617,25 @@ If length < threshold:
 ## PHASE 3: ROOT CAUSE ANALYSIS
 
 ### Root Cause #1: Design Flaw in Error Handling
+
 - Assumption: "Text extraction always returns something useful"
 - Reality: PDFs can be scanned, corrupted, or fail to parse
 - Solution: Add validation layer before AI processing
 
 ### Root Cause #2: Missing Input Validation
+
 - Assumption: "If code doesn't error, data is valid"
 - Reality: Empty strings pass through without error
 - Solution: Require minimum content length before AI
 
 ### Root Cause #3: No Observability
+
 - Assumption: "Errors will be visible in logs"
 - Reality: Errors caught, logged, then ignored
 - Solution: Add structured logging at each pipeline stage
 
 ### Root Cause #4: Insufficient Testing
+
 - No test cases for:
   - Empty content
   - Scanned PDFs
@@ -620,12 +647,14 @@ If length < threshold:
 ## PHASE 4: IMPACT ASSESSMENT
 
 ### What's Broken
+
 - ❌ PDF text extraction (returns "", no error)
 - ❌ Gemini AI summaries (receives empty content)
 - ❌ Version diffs (calculates on empty strings = {added: 0, removed: 0})
 - ❌ Frontend display (shows generic "Version uploaded" summary)
 
 ### What's Working
+
 - ✅ File upload infrastructure
 - ✅ MongoDB storage
 - ✅ Diff algorithm (works with any input)
@@ -637,6 +666,7 @@ If length < threshold:
 ## PHASE 5: RECOMMENDED FIXES
 
 ### Fix #1: Add Text Extraction Validation 🔴 HIGH PRIORITY
+
 **File**: `backend/src/services/version.service.js`
 
 ```javascript
@@ -646,35 +676,36 @@ async function validateExtractedText(text, filePath, mimeType) {
   if (!text || text.length === 0) {
     console.warn(`[WARNING] No text extracted from ${filePath}`);
     // For PDFs, could indicate scanned image
-    return {valid: false, text: "", reason: "empty", suggestOcr: isPdf(mimeType)};
+    return { valid: false, text: "", reason: "empty", suggestOcr: isPdf(mimeType) };
   }
-  
+
   // Check 2: Contains actual content (not just whitespace)
   if (text.trim().length === 0) {
     console.warn(`[WARNING] Extracted text is only whitespace from ${filePath}`);
-    return {valid: false, text: "", reason: "whitespace_only", suggestOcr: isPdf(mimeType)};
+    return { valid: false, text: "", reason: "whitespace_only", suggestOcr: isPdf(mimeType) };
   }
-  
+
   // Check 3: Minimum length threshold
   const MIN_CONTENT_LENGTH = 10; // at least 10 characters
   if (text.length < MIN_CONTENT_LENGTH) {
     console.warn(`[WARNING] Extracted text too short (${text.length} chars) from ${filePath}`);
-    return {valid: false, text: text, reason: "too_short"};
+    return { valid: false, text: text, reason: "too_short" };
   }
-  
+
   console.log(`[INFO] Successfully extracted ${text.length} characters from ${filePath}`);
-  return {valid: true, text: text, reason: "success"};
+  return { valid: true, text: text, reason: "success" };
 }
 ```
 
 ### Fix #2: Add Comprehensive Logging 🔴 HIGH PRIORITY
+
 **File**: `backend/src/services/version.service.js`
 
 ```javascript
 // In createOrUpdateFileVersion():
 console.log(`[INFO] Processing file: ${upload.originalname} (${upload.size} bytes, ${upload.mimetype})`);
 
-const previousTextResult = lastVersion ? 
+const previousTextResult = lastVersion ?
   await readTextIfPossible(...) : null;
 if (lastVersion) {
   console.log(`[INFO] Previous version text: ${previousTextResult?.length || 0} characters`);
@@ -691,6 +722,7 @@ console.log(`[INFO] Summary generated from source: ${summaryResult.source}`);
 ```
 
 ### Fix #3: Add Input Validation to AI Pipeline 🔴 HIGH PRIORITY
+
 **File**: `backend/src/services/ai.service.js`
 
 ```javascript
@@ -702,34 +734,37 @@ export async function generateSummary({
 }) {
   // Validate input
   if (!currentContent || currentContent.trim().length < 10) {
-    console.warn(`[WARNING] Insufficient content for AI summary (${currentContent?.length || 0} chars)`);
-    
+    console.warn(
+      `[WARNING] Insufficient content for AI summary (${currentContent?.length || 0} chars)`,
+    );
+
     // For first version (no previous), this is expected
     if (versionNumber === 1) {
       return {
         summary: `Version 1 uploaded: ${currentContent.length} characters`,
         source: "local",
         model: "validation",
-        reason: "insufficient_content_new_version"
+        reason: "insufficient_content_new_version",
       };
     }
-    
+
     // If neither previous nor current has content, skip Gemini
     if (!previousContent || previousContent.trim().length < 10) {
       return buildLocalSummary(diffStats, versionNumber);
     }
   }
-  
+
   // Proceed with AI if validation passed
   // ... existing code ...
 }
 ```
 
 ### Fix #4: Improve Error Handling 🟡 MEDIUM PRIORITY
+
 **File**: `backend/src/services/version.service.js`
 
 ```javascript
-let diffStats = {added: 0, removed: 0, modified: 0};
+let diffStats = { added: 0, removed: 0, modified: 0 };
 let summary = null;
 let summaryError = null;
 
@@ -756,7 +791,7 @@ try {
   summary = {
     summary: `Version ${nextVersionNumber} uploaded.`,
     source: "fallback",
-    error: summaryError.message
+    error: summaryError.message,
   };
 }
 
@@ -765,26 +800,30 @@ console.log(`[INFO] Storing summary: source=${summary.source}, length=${summary.
 ```
 
 ### Fix #5: Add Debug Endpoint 🟡 MEDIUM PRIORITY
+
 **File**: `backend/src/routes/file.routes.js` (development only)
 
 ```javascript
 if (env.nodeEnv === "development") {
-  fileRouter.get("/debug/:fileId", asyncHandler(async (req, res) => {
-    const file = await FileRecord.findById(req.params.fileId).lean();
-    const versions = await Version.find({file: req.params.fileId})
-      .select("versionNumber summary summarySource summaryModel diffStats storagePath")
-      .sort({versionNumber: -1})
-      .lean();
-    
-    res.json({
-      file,
-      versions: versions.map(v => ({
-        ...v,
-        summaryLength: v.summary?.length || 0,
-        hasExtraction: v.diffStats?.added !== undefined
-      }))
-    });
-  }));
+  fileRouter.get(
+    "/debug/:fileId",
+    asyncHandler(async (req, res) => {
+      const file = await FileRecord.findById(req.params.fileId).lean();
+      const versions = await Version.find({ file: req.params.fileId })
+        .select("versionNumber summary summarySource summaryModel diffStats storagePath")
+        .sort({ versionNumber: -1 })
+        .lean();
+
+      res.json({
+        file,
+        versions: versions.map((v) => ({
+          ...v,
+          summaryLength: v.summary?.length || 0,
+          hasExtraction: v.diffStats?.added !== undefined,
+        })),
+      });
+    }),
+  );
 }
 ```
 
@@ -792,15 +831,15 @@ if (env.nodeEnv === "development") {
 
 ## SUMMARY TABLE
 
-| Issue | Severity | Type | File | Fix |
-|-------|----------|------|------|-----|
-| Silent PDF failures | 🔴 HIGH | Extraction | version.service.js | Add validation + logging |
-| No text validation | 🔴 HIGH | Validation | ai.service.js | Check text length before AI |
-| Error swallowing | 🔴 HIGH | Error handling | version.service.js | Log + track errors |
-| Missing logging | 🔴 HIGH | Observability | version.service.js | Add structured logs |
-| Response parsing fragile | 🟡 MEDIUM | Parsing | ai.service.js | Improve JSON parsing |
-| No scanned PDF detection | 🟡 MEDIUM | Detection | version.service.js | Add OCR detection |
-| Local summary misleading | 🟡 MEDIUM | Fallback | ai.service.js | Improve heuristics |
+| Issue                    | Severity  | Type           | File               | Fix                         |
+| ------------------------ | --------- | -------------- | ------------------ | --------------------------- |
+| Silent PDF failures      | 🔴 HIGH   | Extraction     | version.service.js | Add validation + logging    |
+| No text validation       | 🔴 HIGH   | Validation     | ai.service.js      | Check text length before AI |
+| Error swallowing         | 🔴 HIGH   | Error handling | version.service.js | Log + track errors          |
+| Missing logging          | 🔴 HIGH   | Observability  | version.service.js | Add structured logs         |
+| Response parsing fragile | 🟡 MEDIUM | Parsing        | ai.service.js      | Improve JSON parsing        |
+| No scanned PDF detection | 🟡 MEDIUM | Detection      | version.service.js | Add OCR detection           |
+| Local summary misleading | 🟡 MEDIUM | Fallback       | ai.service.js      | Improve heuristics          |
 
 ---
 
@@ -815,4 +854,4 @@ if (env.nodeEnv === "development") {
 
 ---
 
-*Report generated during comprehensive codebase analysis. No code changes have been made.*
+_Report generated during comprehensive codebase analysis. No code changes have been made._
