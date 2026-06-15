@@ -233,6 +233,9 @@ host-agent             → Jenkins runs directly on the host'''
       }
       steps {
         sh '''
+          echo "Setting up environment files for Docker Compose..."
+          [ -f backend/.env ] || cp backend/.env.example backend/.env || touch backend/.env
+          
           echo "Building Docker images..."
           docker compose ${COMPOSE_FILES} build --progress=plain backend frontend
           echo "Built images:"
