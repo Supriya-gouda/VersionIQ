@@ -1,4 +1,5 @@
 import { ApiError } from "./error-handler.js";
+import { env } from "../config/env.js";
 
 /**
  * Simple in-memory rate limiting
@@ -71,7 +72,7 @@ export function rateLimit({
   skipCondition = () => false,
 } = {}) {
   return (req, res, next) => {
-    if (skipCondition(req)) {
+    if (!env.enableRateLimit || skipCondition(req)) {
       return next();
     }
 

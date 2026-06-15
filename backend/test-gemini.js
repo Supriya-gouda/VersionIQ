@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const apiKey = process.env.GEMINI_API_KEY || "AIzaSyDBh9zk4WK8O0vQl7iUBR62L72hvdXJJ6U";
+const apiKey = process.env.GEMINI_API_KEY || "YOUR_API_KEY";
 const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 async function testGemini() {

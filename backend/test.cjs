@@ -1,7 +1,7 @@
 const axios = require("axios");
 axios
   .post(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=AIzaSyDBh9zk4WK8O0vQl7iUBR62L72hvdXJJ6U",
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=YOUR_API_KEY",
     {
       contents: [{ parts: [{ text: 'You are an AI. Return JSON: {"summary": "test"}' }] }],
       generationConfig: { response_mime_type: "application/json", maxOutputTokens: 4096 },
